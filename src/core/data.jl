@@ -1709,7 +1709,7 @@ function _correct_bus_types!(pm_data::Dict{String,<:Any})
         idx = bus["index"]
         if bus["bus_type"] == 1
             if length(bus_gens[idx]) != 0 # PQ
-                Memento.warn(_LOGGER, "active generators found at bus $(bus["bus_i"]), updating to bus type from $(bus["bus_type"]) to 2")
+                #Memento.warn(_LOGGER, "active generators found at bus $(bus["bus_i"]), updating to bus type from $(bus["bus_type"]) to 2")
                 #bus["bus_type"] = 2
             end
         elseif bus["bus_type"] == 2 # PV
