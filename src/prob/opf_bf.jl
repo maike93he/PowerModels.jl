@@ -114,8 +114,6 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
         variable_bus_voltage(pm, nw=n)  # Eq. (6)
         variable_branch_power(pm, nw=n)  # branch power <= rate_a -> nicht im Modell bisher
         variable_branch_current(pm, nw=n)  # Eq. (7) aber mit I²=(rate_a/V_min)²
-
-        # TODO: print model and check if it is implemented correcty
         variable_gen_power_curt(pm, nw=n)  # non-disp. power curtailment Eq. (8), (9)
         # variable_storage_power_mi(pm, nw=n)  # storage variables (power, energy) Eq. (20)-(22)
 
@@ -123,45 +121,45 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
         # CONSTRAINTS
         constraint_model_current(pm, nw=n)
 
-        for i in ids(pm, :ref_buses, nw=n)
-            constraint_theta_ref(pm, i, nw=n)
-        end
+        # for i in ids(pm, :ref_buses, nw=n)
+        #     constraint_theta_ref(pm, i, nw=n)
+        # end
 
-        for i in ids(pm, :bus, nw=n)
-            constraint_power_balance(pm, i, nw=n)
-        end
+        # for i in ids(pm, :bus, nw=n)
+        #     constraint_power_balance(pm, i, nw=n)
+        # end
 
-        for i in ids(pm, :storage, nw=n)
-            constraint_storage_complementarity_mi(pm, i, nw=n)
-            constraint_storage_losses(pm, i, nw=n)
-            constraint_storage_thermal_limit(pm, i, nw=n)
-        end
+        # for i in ids(pm, :storage, nw=n)
+        #     constraint_storage_complementarity_mi(pm, i, nw=n)
+        #     constraint_storage_losses(pm, i, nw=n)
+        #     constraint_storage_thermal_limit(pm, i, nw=n)
+        # end
 
-        for i in ids(pm, :branch, nw=n)
-            constraint_power_losses(pm, i, nw=n)
-            constraint_voltage_magnitude_difference(pm, i, nw=n)
+        # for i in ids(pm, :branch, nw=n)
+        #     constraint_power_losses(pm, i, nw=n)
+        #     constraint_voltage_magnitude_difference(pm, i, nw=n)
 
-            constraint_voltage_angle_difference(pm, i, nw=n)
+        #     constraint_voltage_angle_difference(pm, i, nw=n)
 
-            constraint_thermal_limit_from(pm, i, nw=n)
-            constraint_thermal_limit_to(pm, i, nw=n)
-        end
+        #     constraint_thermal_limit_from(pm, i, nw=n)
+        #     constraint_thermal_limit_to(pm, i, nw=n)
+        # end
 
     end
 
-    network_ids = sort(collect(nw_ids(pm)))
+    # network_ids = sort(collect(nw_ids(pm)))
 
-    n_1 = network_ids[1]
-    for i in ids(pm, :storage, nw=n_1)
-        constraint_storage_state(pm, i, nw=n_1)
-    end
+    # n_1 = network_ids[1]
+    # for i in ids(pm, :storage, nw=n_1)
+    #     constraint_storage_state(pm, i, nw=n_1)
+    # end
 
-    for n_2 in network_ids[2:end]
-        for i in ids(pm, :storage, nw=n_2)
-            constraint_storage_state(pm, i, n_1, n_2)
-        end
-        n_1 = n_2
-    end
+    # for n_2 in network_ids[2:end]
+    #     for i in ids(pm, :storage, nw=n_2)
+    #         constraint_storage_state(pm, i, n_1, n_2)
+    #     end
+    #     n_1 = n_2
+    # end
 
-    objective_min_fuel_and_flow_cost(pm)
+    #objective_min_fuel_and_flow_cost(pm)
 end
