@@ -46,13 +46,13 @@ function solve_model(data::Dict{String,<:Any}, model_type::Type, optimizer, buil
 
     start_time = time()
     pm = instantiate_model(data, model_type, build_method; ref_extensions=ref_extensions, kwargs...)
-    #print(pm.model)
+    print(pm.model)
     Memento.debug(_LOGGER, "pm model build time: $(time() - start_time)")
-
+    println("pm model build time: $(time() - start_time)")
     start_time = time()
     result = optimize_model!(pm, relax_integrality=relax_integrality, optimizer=optimizer, solution_processors=solution_processors)
     Memento.debug(_LOGGER, "pm model solve and solution time: $(time() - start_time)")
-
+    println("pm model solve and solution time: $(time() - start_time)")
     return result
 end
 
