@@ -953,6 +953,11 @@ function variable_storage_power_mi(pm::AbstractPowerModel; kwargs...)
     variable_storage_complementary_indicator(pm; kwargs...)
 end
 
+"variables for modeling storage units, includes grid injection and internal variables"
+function variable_battery_storage_power(pm::AbstractPowerModel; kwargs...)
+    variable_storage_energy(pm; kwargs...)  # Eq. (22)
+    variable_storage_charge_discharge(pm; kwargs...)  # Eq. (20)
+end
 
 ""
 function variable_storage_power_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
@@ -1080,6 +1085,23 @@ function variable_storage_discharge(pm::AbstractPowerModel; nw::Int=nw_id_defaul
     end
 
     report && sol_component_value(pm, nw, :storage, :sd, ids(pm, nw, :storage), sd)
+end
+
+""
+function variable_storage_charge_discharge(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    sp = var(pm, nw)[:sp] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :storage)], base_name="$(nw)_sp",
+        start = comp_start_value(ref(pm, nw, :storage, i), "sp_start", 1)
+    )
+
+    if bounded
+        for (i, storage) in ref(pm, nw, :storage)
+            JuMP.set_lower_bound(sp[i], - storage["discharge_rating"])
+            JuMP.set_upper_bound(sp[i], storage["charge_rating"])
+        end
+    end
+
+    report && sol_component_value(pm, nw, :storage, :sp, ids(pm, nw, :storage), sp)
 end
 
 ""
