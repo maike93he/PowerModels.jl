@@ -115,8 +115,8 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
         variable_branch_power(pm, nw=n)  # branch power <= rate_a -> nicht im Modell bisher
         variable_branch_current(pm, nw=n)  # Eq. (7) aber mit I²=(rate_a/V_min)²
 
-        # TODO:
-        # variable_nd_power_curt(pm, nw=n)  # non-disp. power curtailment Eq. (8), (9)
+        # TODO: print model and check if it is implemented correcty
+        variable_gen_power_curt(pm, nw=n)  # non-disp. power curtailment Eq. (8), (9)
         # variable_storage_power_mi(pm, nw=n)  # storage variables (power, energy) Eq. (20)-(22)
 
 

@@ -301,6 +301,45 @@ function variable_gen_power_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_defa
     report && sol_component_value(pm, nw, :gen, :qg, ids(pm, nw, :gen), qg)
 end
 
+"generates variables for both `active` and `reactive` non-dispatchable power generation curtailment"
+function variable_gen_power_curt(pm::AbstractPowerModel; kwargs...)
+    variable_gen_power_curt_real(pm; kwargs...)
+    variable_gen_power_curt_imaginary(pm; kwargs...)
+end
+
+
+"variable: `pgc[j]` for `j` in `gen_nd`"
+function variable_gen_power_curt_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    pgc = var(pm, nw)[:pgc] = JuMP.@variable(pm.model,  # Was macht var()?
+        [i in ids(pm, nw, :gen_nd)], base_name="$(nw)_pgc"
+    )
+
+    if bounded
+        for (i, gen) in ref(pm, nw, :gen_nd)
+            JuMP.set_lower_bound(pgc[i], 0)
+            JuMP.set_upper_bound(pgc[i], gen["pg"])
+        end
+    end
+
+    report && sol_component_value(pm, nw, :gen_nd, :pgc, ids(pm, nw, :gen_nd), pgc)
+end
+
+"variable: `qgc[j]` for `j` in `gen_nd`"
+function variable_gen_power_curt_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    qgc = var(pm, nw)[:qgc] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :gen_nd)], base_name="$(nw)_qgc"
+    )
+
+    if bounded
+        for (i, gen) in ref(pm, nw, :gen_nd)
+            JuMP.set_lower_bound(qgc[i], 0)
+            JuMP.set_upper_bound(qgc[i], gen["qg"])
+        end
+    end
+
+    report && sol_component_value(pm, nw, :gen_nd, :qgc, ids(pm, nw, :gen_nd), qgc)
+end
+
 "variable: `crg[j]` for `j` in `gen`"
 function variable_gen_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     crg = var(pm, nw)[:crg] = JuMP.@variable(pm.model,
