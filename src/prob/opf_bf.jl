@@ -110,13 +110,17 @@ end
 "Build multinetwork branch flow OPF with multiple flexibilities"
 function build_mn_opf_bf_flex(pm::AbstractPowerModel)
     for (n, network) in nws(pm)
-        variable_bus_voltage(pm, nw=n)
-        variable_gen_power(pm, nw=n)
-        variable_storage_power_mi(pm, nw=n)
-        variable_branch_power(pm, nw=n)
-        variable_branch_current(pm, nw=n)
-        variable_dcline_power(pm, nw=n)
+        # VARIABLES
+        variable_bus_voltage(pm, nw=n)  # Eq. (6)
+        variable_branch_power(pm, nw=n)  # branch power <= rate_a -> nicht im Modell bisher
+        variable_branch_current(pm, nw=n)  # Eq. (7) aber mit I²=(rate_a/V_min)²
 
+        # TODO:
+        # variable_nd_power_curt(pm, nw=n)  # non-disp. power curtailment Eq. (8), (9)
+        # variable_storage_power_mi(pm, nw=n)  # storage variables (power, energy) Eq. (20)-(22)
+
+
+        # CONSTRAINTS
         constraint_model_current(pm, nw=n)
 
         for i in ids(pm, :ref_buses, nw=n)
@@ -143,9 +147,6 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
             constraint_thermal_limit_to(pm, i, nw=n)
         end
 
-        for i in ids(pm, :dcline, nw=n)
-            constraint_dcline_power_losses(pm, i, nw=n)
-        end
     end
 
     network_ids = sort(collect(nw_ids(pm)))
