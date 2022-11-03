@@ -41,7 +41,6 @@ abstract type AbstractBFConicModel <: AbstractBFModel end
 
 
 
-
 ##### Exact Non-Convex Models #####
 
 ""
@@ -427,7 +426,17 @@ abstract type AbstractSOCBFConicModel <: AbstractBFConicModel end
 ""
 mutable struct SOCBFConicPowerModel <: AbstractSOCBFConicModel @pm_fields end
 
+""
 
+abstract type AbstractSOCBFModelEdisgo <: AbstractBFQPModel end
+
+"""
+Second-order cone relaxation of branch flow model (eDisGo implementation)
+
+
+Applicable to problem formulations with `_bf` in the name.
+"""
+mutable struct SOCBFPowerModelEdisgo <: AbstractSOCBFModelEdisgo @pm_fields end
 
 
 

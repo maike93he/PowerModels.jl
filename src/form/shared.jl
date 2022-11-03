@@ -132,6 +132,7 @@ function _sol_data_model_w!(solution::Dict)
 end
 
 
+
 ""
 function constraint_power_balance(pm::AbstractWModels, n::Int, i, bus_arcs, bus_arcs_dc, bus_arcs_sw, bus_gens, bus_storage, bus_pd, bus_qd, bus_gs, bus_bs)
     w    = var(pm, n, :w, i)

@@ -40,3 +40,8 @@ end
 function sol_component_value_edge(aim::AbstractPowerModel, n::Int, comp_name::Symbol, field_name_fr::Symbol, field_name_to::Symbol, comp_ids_fr, comp_ids_to, variables)
     return _IM.sol_component_value_edge(aim, pm_it_sym, n, comp_name, field_name_fr, field_name_to, comp_ids_fr, comp_ids_to, variables)
 end
+
+"maps asymmetric edge variables into components"
+function sol_component_value_radial(aim::AbstractPowerModel, n::Int, comp_name::Symbol, field_name_fr::Symbol, comp_ids_fr, variables)
+    return _IM.sol_component_value_radial(aim, pm_it_sym, n, comp_name, field_name_fr, comp_ids_fr, variables)
+end

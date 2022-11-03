@@ -602,3 +602,9 @@ function objective_max_loadability(pm::AbstractPowerModel)
         )
 end
 
+
+function objective_min_losses(pm::AbstractPowerModel)
+    nws = nw_ids(pm)
+    return JuMP.@objective(pm.model, Min,
+        sum(1 for n in nws))
+end

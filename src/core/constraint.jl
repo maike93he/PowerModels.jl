@@ -212,10 +212,10 @@ end
 
 ""
 
-function constraint_storage_state_initial_bf(pm::AbstractPowerModel, n::Int, i::Int, capacity)
+function constraint_storage_state_initial(pm::AbstractSOCBFModelEdisgo, n::Int, i::Int, energy, charge_eff, discharge_eff, time_elapsed)
     se = var(pm, n, :se, i)
 
-    JuMP.@constraint(pm.model, se == 1/2 * capacity)
+    JuMP.@constraint(pm.model, se == energy)
 end
 
 ""
@@ -230,7 +230,7 @@ end
 
 ""
 
-function constraint_storage_state_bf(pm::AbstractPowerModel, n_1::Int, n_2::Int, i::Int, time_elapsed)
+function constraint_storage_state(pm::AbstractSOCBFModelEdisgo, n_1::Int, n_2::Int, i::Int, charge_eff, discharge_eff, time_elapsed)
     ps_2 = var(pm, n_2, :ps, i)
     se_2 = var(pm, n_2, :se, i)
     se_1 = var(pm, n_1, :se, i)

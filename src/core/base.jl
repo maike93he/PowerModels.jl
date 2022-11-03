@@ -90,8 +90,10 @@ Some of the common keys include:
 * `:arcs_to` -- the set `[(i,b["t_bus"],b["f_bus"]) for (i,b) in ref[:branch]]`,
 * `:arcs` -- the set of arcs from both `arcs_from` and `arcs_to`,
 * `:bus_arcs` -- the mapping `Dict(i => [(l,i,j) for (l,i,j) in ref[:arcs]])`,
+* `:bus_arcs_from` -- the mapping `Dict(i => [(l,i,j) for (l,i,j) in ref[:arcs_from]])`,
 * `:buspairs` -- (see `buspair_parameters(ref[:arcs_from], ref[:branch], ref[:bus])`),
 * `:bus_gens` -- the mapping `Dict(i => [gen["gen_bus"] for (i,gen) in ref[:gen]])`.
+* `:bus_gens_nd` -- the mapping `Dict(i => [gen_nd["gen_bus"] for (i,gen) in ref[:gen_nd]])`.
 * `:bus_loads` -- the mapping `Dict(i => [load["load_bus"] for (i,load) in ref[:load]])`.
 * `:bus_shunts` -- the mapping `Dict(i => [shunt["shunt_bus"] for (i,shunt) in ref[:shunt]])`.
 * `:arcs_from_dc` -- the set `[(i,b["f_bus"],b["t_bus"]) for (i,b) in ref[:dcline]]`,
@@ -158,6 +160,12 @@ function ref_add_core!(ref::Dict{Symbol,Any})
         end
         nw_ref[:bus_gens] = bus_gens
 
+        bus_gens_nd = Dict((i, Int[]) for (i,bus) in nw_ref[:bus])
+        for (i,gen) in nw_ref[:gen_nd]
+            push!(bus_gens_nd[gen["gen_bus"]], i)
+        end
+        nw_ref[:bus_gens_nd] = bus_gens_nd
+
         bus_storage = Dict((i, Int[]) for (i,bus) in nw_ref[:bus])
         for (i,strg) in nw_ref[:storage]
             push!(bus_storage[strg["storage_bus"]], i)
@@ -169,6 +177,12 @@ function ref_add_core!(ref::Dict{Symbol,Any})
             push!(bus_arcs[i], (l,i,j))
         end
         nw_ref[:bus_arcs] = bus_arcs
+
+        bus_arcs_from = Dict((i, Tuple{Int,Int,Int}[]) for (i,bus) in nw_ref[:bus])
+        for (l,i,j) in nw_ref[:arcs_from]
+            push!(bus_arcs_from[i], (l,i,j))
+        end
+        nw_ref[:bus_arcs_from] = bus_arcs_from
 
         bus_arcs_dc = Dict((i, Tuple{Int,Int,Int}[]) for (i,bus) in nw_ref[:bus])
         for (l,i,j) in nw_ref[:arcs_dc]
