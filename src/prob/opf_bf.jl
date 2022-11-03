@@ -119,20 +119,14 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
 
 
         # CONSTRAINTS
-        constraint_model_current(pm, nw=n)
+        constraint_model_current(pm, nw=n)  # Eq. (5) as SOC
 
-        # for i in ids(pm, :ref_buses, nw=n)
-        #     constraint_theta_ref(pm, i, nw=n)
-        # end
-
-        # for i in ids(pm, :bus, nw=n)
-        #     constraint_power_balance(pm, i, nw=n)
-        # end
+        for i in ids(pm, :bus, nw=n)  # TODO
+            constraint_power_balance_bf(pm, i, nw=n)
+        end
 
         # for i in ids(pm, :storage, nw=n)
-        #     constraint_storage_complementarity_mi(pm, i, nw=n)
-        #     constraint_storage_losses(pm, i, nw=n)
-        #     constraint_storage_thermal_limit(pm, i, nw=n)
+        #     constraint_storage_thermal_limit(pm, i, nw=n)  # Nicht im Modell bis jetzt
         # end
 
         # for i in ids(pm, :branch, nw=n)
@@ -147,19 +141,19 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
 
     end
 
-    # network_ids = sort(collect(nw_ids(pm)))
+    network_ids = sort(collect(nw_ids(pm)))
 
-    # n_1 = network_ids[1]
-    # for i in ids(pm, :storage, nw=n_1)
-    #     constraint_storage_state(pm, i, nw=n_1)
-    # end
+    n_1 = network_ids[1]
+    for i in ids(pm, :storage, nw=n_1)
+        constraint_storage_state_bf(pm, i, nw=n_1)
+    end
 
-    # for n_2 in network_ids[2:end]
-    #     for i in ids(pm, :storage, nw=n_2)
-    #         constraint_storage_state(pm, i, n_1, n_2)
-    #     end
-    #     n_1 = n_2
-    # end
+    for n_2 in network_ids[2:end]
+        for i in ids(pm, :storage, nw=n_2)
+            constraint_storage_state_bf(pm, i, n_1, n_2)
+        end
+        n_1 = n_2
+    end
 
     #objective_min_fuel_and_flow_cost(pm)
 end

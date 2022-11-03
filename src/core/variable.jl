@@ -955,8 +955,9 @@ end
 
 "variables for modeling storage units, includes grid injection and internal variables"
 function variable_battery_storage_power(pm::AbstractPowerModel; kwargs...)
+    variable_storage_power_real(pm; kwargs...)  # Eq. (20) umschreiben!
+    variable_storage_power_imaginary(pm; kwargs...)
     variable_storage_energy(pm; kwargs...)  # Eq. (22)
-    variable_storage_charge_discharge(pm; kwargs...)  # Eq. (20)
 end
 
 ""
@@ -1089,7 +1090,7 @@ end
 
 ""
 function variable_storage_charge_discharge(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
-    sp = var(pm, nw)[:sp] = JuMP.@variable(pm.model,
+    ps = var(pm, nw)[:sp] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :storage)], base_name="$(nw)_sp",
         start = comp_start_value(ref(pm, nw, :storage, i), "sp_start", 1)
     )
