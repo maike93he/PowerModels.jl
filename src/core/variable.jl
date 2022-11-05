@@ -519,7 +519,7 @@ function variable_branch_power_radial(pm::AbstractPowerModel; kwargs...)
 end
 
 
-"variable: `p[l,i,j]` for `(l,i,j)` in `arcs`"
+"variable: `p[l,i,j]` for `(l,i,j)` in `arcs_from`"
 function variable_branch_power_real_radial(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     p = var(pm, nw)[:p] = JuMP.@variable(pm.model,
         [(l,i,j) in ref(pm, nw, :arcs_from)], base_name="$(nw)_p",

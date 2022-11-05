@@ -225,36 +225,40 @@ end
 
 
 ""
-function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens_nd, bus_arcs, bus_storage, bus_pg, bus_qg, bus_pg_nd, bus_qg_nd, bus_pd, bus_qd, bus_gs, bus_bs)#, branch_r, branch_x)
+function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens_nd, bus_arcs_to, bus_arcs_from, bus_storage, bus_pg, bus_qg, bus_pg_nd, bus_qg_nd, bus_pd, bus_qd, bus_gs, bus_bs)#, branch_r, branch_x)
     w    = var(pm, n, :w, i)
-    p    = get(var(pm, n),    :p, Dict()); _check_var_keys(p, bus_arcs, "active power", "branch")
-    q    = get(var(pm, n),    :q, Dict()); _check_var_keys(q, bus_arcs, "reactive power", "branch")
-    ps   = get(var(pm, n),   :ps, Dict()); _check_var_keys(ps, bus_storage, "active power", "storage")
-    qs   = get(var(pm, n),   :qs, Dict()); _check_var_keys(qs, bus_storage, "reactive power", "storage")
+    pt   = get(var(pm, n),  :p, Dict()); _check_var_keys(pt, bus_arcs_to, "active power", "branch")
+    qt   = get(var(pm, n),  :q, Dict()); _check_var_keys(qt, bus_arcs_to, "reactive power", "branch")
+    pf   = get(var(pm, n),  :p, Dict()); _check_var_keys(pf, bus_arcs_from, "active power", "branch")
+    qf   = get(var(pm, n),  :q, Dict()); _check_var_keys(qf, bus_arcs_from, "reactive power", "branch")
+    ps   = get(var(pm, n),  :ps, Dict()); _check_var_keys(ps, bus_storage, "active power", "storage")
+    qs   = get(var(pm, n),  :qs, Dict()); _check_var_keys(qs, bus_storage, "reactive power", "storage")
     pgc  = get(var(pm, n),  :pgc, Dict()); _check_var_keys(pgc, bus_gens_nd, "active power", "curtailment")
     qgc  = get(var(pm, n),  :qgc, Dict()); _check_var_keys(qgc, bus_gens_nd, "reactive power", "curtailment")
 
     # TODO: add ccm * R / ccm * X
 
     cstr_p = JuMP.@constraint(pm.model,
-        sum(p[a] for a in bus_arcs)
+        sum(pt[a] for a in bus_arcs_to)
         ==
-        sum(pg for pg in values(bus_pg))
-        + sum(pg for pg in values(bus_pg_nd))
-        - sum(ps[s] for s in bus_storage)
-        - sum(pd for pd in values(bus_pd))
-        - sum(gs for gs in values(bus_gs))*w   # TODO: + oder -?
-        - sum(pgc[g] for g in bus_gens_nd)  # TODO: + oder -?
+        sum(pf[a] for a in bus_arcs_from)
+        - sum(pg for pg in values(bus_pg))
+        - sum(pg for pg in values(bus_pg_nd))
+        + sum(ps[s] for s in bus_storage)
+        + sum(pd for pd in values(bus_pd))
+        + sum(gs for gs in values(bus_gs))*w   # TODO: + oder -?
+        + sum(pgc[g] for g in bus_gens_nd)  # TODO: + oder -?
     )
     cstr_q = JuMP.@constraint(pm.model,
-        sum(q[a] for a in bus_arcs)
+        sum(qt[a] for a in bus_arcs_to)
         ==
-        sum(qg for qg in values(bus_qg))
-        + sum(qg for qg in values(bus_qg_nd))
-        - sum(qs[s] for s in bus_storage)
-        - sum(qd for qd in values(bus_qd))
-        + sum(bs for bs in values(bus_bs))*w   # TODO: + oder -?
-        + sum(qgc[g] for g in bus_gens_nd)  # TODO: + oder -?
+        sum(qf[a] for a in bus_arcs_from)
+        - sum(qg for qg in values(bus_qg))
+        - sum(qg for qg in values(bus_qg_nd))
+        + sum(qs[s] for s in bus_storage)
+        + sum(qd for qd in values(bus_qd))
+        - sum(bs for bs in values(bus_bs))*w   # TODO: + oder -?
+        - sum(qgc[g] for g in bus_gens_nd)  # TODO: + oder -?
     )
 
     if _IM.report_duals(pm)
