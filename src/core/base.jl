@@ -92,6 +92,7 @@ Some of the common keys include:
 * `:bus_arcs` -- the mapping `Dict(i => [(l,i,j) for (l,i,j) in ref[:arcs]])`,
 * `:bus_arcs_to` -- the mapping `Dict(j => [(l,i,j) for (l,i,j) in ref[:arcs_from]])`,
 * `:bus_arcs_from` -- the mapping `Dict(i => [(l,i,j) for (l,i,j) in ref[:arcs_from]])`,
+* `:bus_lines_to` -- the mapping `Dict(j => [l for (l,i,j) in ref[:arcs_from]])`,
 * `:buspairs` -- (see `buspair_parameters(ref[:arcs_from], ref[:branch], ref[:bus])`),
 * `:bus_gens` -- the mapping `Dict(i => [gen["gen_bus"] for (i,gen) in ref[:gen]])`.
 * `:bus_gens_nd` -- the mapping `Dict(i => [gen_nd["gen_bus"] for (i,gen) in ref[:gen_nd]])`.
@@ -190,6 +191,12 @@ function ref_add_core!(ref::Dict{Symbol,Any})
             push!(bus_arcs_from[i], (l,i,j))
         end
         nw_ref[:bus_arcs_from] = bus_arcs_from
+
+        bus_lines_to = Dict((i, Int[]) for (i,bus) in nw_ref[:bus])
+        for (l,i,j) in nw_ref[:arcs_from]
+            push!(bus_lines_to[j], l)
+        end
+        nw_ref[:bus_lines_to] = bus_lines_to
 
         bus_arcs_dc = Dict((i, Tuple{Int,Int,Int}[]) for (i,bus) in nw_ref[:bus])
         for (l,i,j) in nw_ref[:arcs_dc]

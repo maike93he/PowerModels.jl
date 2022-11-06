@@ -213,16 +213,19 @@ end
 "power balance for radial branch flow model" 
 function constraint_power_balance_bf(pm::SOCBFPowerModelEdisgo, i::Int; nw::Int=nw_id_default)
     bus = ref(pm, nw, :bus, i)
+    bus_lines_to = ref(pm, nw, :bus_lines_to, i)
     bus_arcs_to = ref(pm, nw, :bus_arcs_to, i)
     bus_arcs_from = ref(pm, nw, :bus_arcs_from, i)
+    bus_lines_to = ref(pm, nw, :bus_lines_to, i)
     bus_gens = ref(pm, nw, :bus_gens, i)
+    bus_gens_nd = ref(pm, nw, :bus_gens_nd, i)
     bus_loads = ref(pm, nw, :bus_loads, i)
     bus_shunts = ref(pm, nw, :bus_shunts, i)
     bus_storage = ref(pm, nw, :bus_storage, i)
-    bus_gens_nd = ref(pm, nw, :bus_gens_nd, i)
+    
 
-    #branch_r = ref(pm, nw, :branch, i)  # TODO
-    #branch_x = ref(pm, nw, :branch, i)  # TODO
+    branch_r = Dict(k => ref(pm, nw, :branch, k, "br_r") for k in bus_lines_to)
+    branch_x = Dict(k => ref(pm, nw, :branch, k, "br_x") for k in bus_lines_to)
 
     bus_pg = Dict(k => ref(pm, nw, :gen, k, "pg") for k in bus_gens) 
     bus_qg = Dict(k => ref(pm, nw, :gen, k, "qg") for k in bus_gens) 
@@ -236,7 +239,7 @@ function constraint_power_balance_bf(pm::SOCBFPowerModelEdisgo, i::Int; nw::Int=
     bus_gs = Dict(k => ref(pm, nw, :shunt, k, "gs") for k in bus_shunts)
     bus_bs = Dict(k => ref(pm, nw, :shunt, k, "bs") for k in bus_shunts)
 
-    constraint_power_balance(pm, nw, i, bus_gens_nd, bus_arcs_to, bus_arcs_from, bus_storage, bus_pg, bus_qg, bus_pg_nd, bus_qg_nd, bus_pd, bus_qd, bus_gs, bus_bs)#, branch_r, branch_x)
+    constraint_power_balance(pm, nw, i, bus_gens_nd, bus_arcs_to, bus_arcs_from, bus_lines_to, bus_storage, bus_pg, bus_qg, bus_pg_nd, bus_qg_nd, bus_pd, bus_qd, bus_gs, bus_bs, branch_r, branch_x)
 end
 
 "nodal power balance with constant power factor load and shunt shedding"

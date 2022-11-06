@@ -111,6 +111,7 @@ end
 function build_mn_opf_bf_flex(pm::AbstractPowerModel)
     for (n, network) in nws(pm)
         # VARIABLES
+        #variable_slack_gen(pm, nw=n)
         variable_bus_voltage(pm, nw=n)  # Eq. (6)
         variable_branch_power_radial(pm, nw=n)  # branch power <= rate_a -> nicht im Modell bisher
         variable_branch_current(pm, nw=n)  # Eq. (7) aber mit I²=(rate_a/V_min)²

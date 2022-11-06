@@ -38,6 +38,15 @@ function variable_bus_voltage(pm::AbstractBFModel; kwargs...)
     variable_bus_voltage_magnitude_sqr(pm; kwargs...)
 end
 
+""
+# function variable_slack_gen(pm::SOCBFPowerModelEdisgo; kwargs...)
+#     pgs = var(pm, nw)[:pgs] = JuMP.@variable(pm.model,
+#         [i in ids(pm, nw, :gen)], base_name="$(nw)_pgs"
+#     )
+#     report && sol_component_value(pm, nw, :gen, :pgs, ids(pm, nw, :gen), pgs)
+# end
+
+
 """
 Defines branch flow model power flow equations
 """
@@ -225,7 +234,7 @@ end
 
 
 ""
-function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens_nd, bus_arcs_to, bus_arcs_from, bus_storage, bus_pg, bus_qg, bus_pg_nd, bus_qg_nd, bus_pd, bus_qd, bus_gs, bus_bs)#, branch_r, branch_x)
+function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens_nd, bus_arcs_to, bus_arcs_from, bus_lines_to, bus_storage, bus_pg, bus_qg, bus_pg_nd, bus_qg_nd, bus_pd, bus_qd, bus_gs, bus_bs, branch_r, branch_x)
     w    = var(pm, n, :w, i)
     pt   = get(var(pm, n),  :p, Dict()); _check_var_keys(pt, bus_arcs_to, "active power", "branch")
     qt   = get(var(pm, n),  :q, Dict()); _check_var_keys(qt, bus_arcs_to, "reactive power", "branch")
@@ -235,29 +244,32 @@ function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens
     qs   = get(var(pm, n),  :qs, Dict()); _check_var_keys(qs, bus_storage, "reactive power", "storage")
     pgc  = get(var(pm, n),  :pgc, Dict()); _check_var_keys(pgc, bus_gens_nd, "active power", "curtailment")
     qgc  = get(var(pm, n),  :qgc, Dict()); _check_var_keys(qgc, bus_gens_nd, "reactive power", "curtailment")
+    ccm  = get(var(pm, n),  :ccm, Dict()); _check_var_keys(ccm, bus_lines_to, "active power", "branch")
 
-    # TODO: add ccm * R / ccm * X
+    # TODO: add Slack_gen, ccm * R / ccm * X
 
     cstr_p = JuMP.@constraint(pm.model,
         sum(pt[a] for a in bus_arcs_to)
         ==
         sum(pf[a] for a in bus_arcs_from)
+        + sum(ccm[a] * branch_r[a] for a in bus_lines_to) # *R
         - sum(pg for pg in values(bus_pg))
         - sum(pg for pg in values(bus_pg_nd))
         + sum(ps[s] for s in bus_storage)
         + sum(pd for pd in values(bus_pd))
-        + sum(gs for gs in values(bus_gs))*w   # TODO: + oder -?
+        #+ sum(gs for gs in values(bus_gs))*w   # TODO: + oder -?
         + sum(pgc[g] for g in bus_gens_nd)  # TODO: + oder -?
     )
     cstr_q = JuMP.@constraint(pm.model,
         sum(qt[a] for a in bus_arcs_to)
         ==
         sum(qf[a] for a in bus_arcs_from)
+        + sum(ccm[a] * branch_x[a] for a in bus_lines_to) # *X
         - sum(qg for qg in values(bus_qg))
         - sum(qg for qg in values(bus_qg_nd))
         + sum(qs[s] for s in bus_storage)
         + sum(qd for qd in values(bus_qd))
-        - sum(bs for bs in values(bus_bs))*w   # TODO: + oder -?
+        #- sum(bs for bs in values(bus_bs))*w   # TODO: + oder -?
         - sum(qgc[g] for g in bus_gens_nd)  # TODO: + oder -?
     )
 
