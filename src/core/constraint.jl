@@ -212,10 +212,17 @@ end
 
 ""
 
-function constraint_storage_state_initial(pm::AbstractSOCBFModelEdisgo, n::Int, i::Int, energy, charge_eff, discharge_eff, time_elapsed)
-    se = var(pm, n, :se, i)
-
-    JuMP.@constraint(pm.model, se == energy)
+function constraint_storage_state_initial(pm::AbstractSOCBFModelEdisgo, n::Int, i::Int, energy, charge_eff, discharge_eff, time_elapsed, kind)
+    if kind == "storage"
+        se = var(pm, n, :se, i)
+        JuMP.@constraint(pm.model, se == energy)
+    elseif kind == "heat_storage"
+        hse = var(pm, n, :hse, i)
+        JuMP.@constraint(pm.model, hse == energy)
+    elseif kind == "dsm"
+        dsme = var(pm, n, :dsme, i)
+        JuMP.@constraint(pm.model, dsme == energy)
+    end
 end
 
 ""
@@ -230,12 +237,26 @@ end
 
 ""
 
-function constraint_storage_state(pm::AbstractSOCBFModelEdisgo, n_1::Int, n_2::Int, i::Int, charge_eff, discharge_eff, time_elapsed)
-    ps_2 = var(pm, n_2, :ps, i)
-    se_2 = var(pm, n_2, :se, i)
-    se_1 = var(pm, n_1, :se, i)
+function constraint_storage_state(pm::AbstractSOCBFModelEdisgo, n_1::Int, n_2::Int, i::Int, charge_eff, discharge_eff, time_elapsed, kind)
+    if kind == "storage"
+        ps_2 = var(pm, n_2, :ps, i)
+        se_2 = var(pm, n_2, :se, i)
+        se_1 = var(pm, n_1, :se, i)
 
-    JuMP.@constraint(pm.model, se_2 - se_1 == time_elapsed*ps_2)
+        JuMP.@constraint(pm.model, se_2 - se_1 == time_elapsed*ps_2)
+    elseif kind == "heat_storage"
+        phs_2 = var(pm, n_2, :phs, i)
+        hse_2 = var(pm, n_2, :hse, i)
+        hse_1 = var(pm, n_1, :hse, i)
+
+        JuMP.@constraint(pm.model, hse_2 - hse_1 == time_elapsed*phs_2)
+    elseif kind == "dsm"
+        pdsm_2 = var(pm, n_2, :pdsm, i)
+        dsme_2 = var(pm, n_2, :dsme, i)
+        dsme_1 = var(pm, n_1, :dsme, i)
+
+        JuMP.@constraint(pm.model, dsme_2 - dsme_1 == time_elapsed*pdsm_2)
+    end
 end
 
 ""
@@ -272,4 +293,47 @@ function constraint_storage_on_off(pm::AbstractPowerModel, n::Int, i, pmin, pmax
     JuMP.@constraint(pm.model, qs >= z_storage*qmin)
     JuMP.@constraint(pm.model, qsc <= z_storage*qmax)
     JuMP.@constraint(pm.model, qsc >= z_storage*qmin)
+end
+
+""" Creates constraints for EV charging per charging park"""
+
+function constraint_cp_state_initial(pm::AbstractSOCBFModelEdisgo, n::Int, i::Int)
+    if haskey(ref(pm, n), :time_elapsed)
+        time_elapsed = ref(pm, n, :time_elapsed)
+    else
+        Memento.warn(_LOGGER, "network data should specify time_elapsed, using 1.0 as a default")
+        time_elapsed = 1.0
+    end
+
+    cp = ref(pm, n, :electromobility, i)
+    cpe = var(pm, n, :cpe, i)
+    JuMP.@constraint(pm.model, cpe == 0.5*(cp["e_min"]+cp["e_max"]))
+    
+end
+
+""
+
+function constraint_cp_state(pm::AbstractSOCBFModelEdisgo, n_1::Int, n_2::Int, i::Int)
+    if haskey(ref(pm, n_1), :time_elapsed)
+        time_elapsed = ref(pm, n_1, :time_elapsed)
+    else
+        Memento.warn(_LOGGER, "network data should specify time_elapsed, using 1.0 as a default")
+        time_elapsed = 1.0
+    end
+
+    pcp_2 = var(pm, n_2, :pcp, i)
+    cpe_2 = var(pm, n_2, :cpe, i)
+    cpe_1 = var(pm, n_1, :cpe, i)
+
+    JuMP.@constraint(pm.model, cpe_2 - cpe_1 == time_elapsed*pcp_2)
+end
+
+""" Creates constraints for heat pump operation"""
+
+function constraint_hp_operation(pm::AbstractSOCBFModelEdisgo, i::Int, nw::Int=nw_id_default)
+    hp = ref(pm, nw, :heatpumps, i)
+    php = var(pm, nw, :php, i)
+    phs = var(pm, nw, :phs, i)
+
+    JuMP.@constraint(pm.model, hp["cop"] * php == hp["pd"] + phs) 
 end

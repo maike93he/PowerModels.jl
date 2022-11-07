@@ -117,7 +117,11 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
         variable_branch_current(pm, nw=n)  # Eq. (7) aber mit I²=(rate_a/V_min)²
         variable_gen_power_curt(pm, nw=n)  # non-disp. power curtailment Eq. (8), (9) #TODO: q neg. -> check constraints
         variable_battery_storage_power(pm, nw=n)  # storage variables (power, energy) Eq. (20)-(22)
-
+        variable_cp_power(pm, nw=n)  # TODO: pcp, qcp, cpe
+        variable_dsm_storage_power(pm, nw=n)  # pdsm, qdsm, dsme
+        variable_heat_storage(pm, nw=n)  # phs, hse
+        variable_heat_pump_power(pm, nw=n)  # php, qhp
+        #variable_slack_flex(pm, nw=n)  # TODO: slack variablen für Anforderungen aus dem übergelagerten Netz
 
         # CONSTRAINTS
         constraint_model_current(pm, nw=n)  # Eq. (5) as SOC
@@ -130,18 +134,38 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
         for i in ids(pm, :branch, nw=n)
             constraint_voltage_magnitude_difference_radial(pm, i, nw=n) # Eq. (4)
         end
+
+        for i in ids(pm, :heatpumps, nw=n)  
+            constraint_hp_operation(pm, i, n) # Eq. (29)
+        end
+
     end
 
     network_ids = sort(collect(nw_ids(pm)))
 
+    
+    for kind in ["storage", "heat_storage", "dsm"]
+        n_1 = network_ids[1]
+        for i in ids(pm, Symbol(kind), nw=n_1)
+            constraint_storage_state(pm, i, nw=n_1, kind=kind)  # Eq. (18)
+        end
+
+        for n_2 in network_ids[2:end]
+            for i in ids(pm, Symbol(kind), nw=n_2)
+                constraint_storage_state(pm, i, n_1, n_2, kind) # Eq. (19)
+            end
+            n_1 = n_2
+        end
+    end
+
     n_1 = network_ids[1]
-    for i in ids(pm, :storage, nw=n_1)
-        constraint_storage_state(pm, i, nw=n_1)  # Eq. (18)
+    for i in ids(pm, :electromobility, nw=n_1)
+        constraint_cp_state_initial(pm, n_1, i)  # Eq. (25)
     end
 
     for n_2 in network_ids[2:end]
-        for i in ids(pm, :storage, nw=n_2)
-            constraint_storage_state(pm, i, n_1, n_2) # Eq. (19)
+        for i in ids(pm, :electromobility, nw=n_2)
+            constraint_cp_state(pm, n_1, n_2, i) # Eq. (26)
         end
         n_1 = n_2
     end
