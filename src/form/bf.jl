@@ -234,7 +234,7 @@ end
 
 
 ""
-function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens_nd, bus_arcs_to, bus_arcs_from, bus_lines_to, bus_storage, bus_pg, bus_qg, bus_pg_nd, bus_qg_nd, bus_pd, bus_qd, bus_gs, bus_bs, branch_r, branch_x)
+function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens_nd, bus_arcs_to, bus_arcs_from, bus_lines_to, bus_storage, bus_pg, bus_qg, bus_pg_nd, bus_qg_nd, bus_pd, bus_qd, branch_r, branch_x, bus_dsm, bus_hps, bus_cps)
     w    = var(pm, n, :w, i)
     pt   = get(var(pm, n),  :p, Dict()); _check_var_keys(pt, bus_arcs_to, "active power", "branch")
     qt   = get(var(pm, n),  :q, Dict()); _check_var_keys(qt, bus_arcs_to, "reactive power", "branch")
@@ -246,31 +246,45 @@ function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens
     qgc  = get(var(pm, n),  :qgc, Dict()); _check_var_keys(qgc, bus_gens_nd, "reactive power", "curtailment")
     ccm  = get(var(pm, n),  :ccm, Dict()); _check_var_keys(ccm, bus_lines_to, "active power", "branch")
 
-    # TODO: add Slack_gen, ccm * R / ccm * X
+    pdsm  = get(var(pm, n),  :pdsm, Dict()); _check_var_keys(pdsm, bus_dsm, "active power", "dsm")
+    qdsm  = get(var(pm, n),  :qdsm, Dict()); _check_var_keys(qdsm, bus_dsm, "reactive power", "dsm")
+
+    php  = get(var(pm, n),  :php, Dict()); _check_var_keys(php, bus_hps, "active power", "heatpumps")
+    qhp  = get(var(pm, n),  :qhp, Dict()); _check_var_keys(qhp, bus_hps, "reactive power", "heatpumps")
+
+    pcp  = get(var(pm, n),  :pcp, Dict()); _check_var_keys(pcp, bus_cps, "active power", "electromobility")
+
+    # TODO:
+    ## add constraints for "anforderungen aus übergelagertem Netz"
+    ## add Slack_gen variable + slack_flex variable for flexibilities
+    ## add slack variables to power balance
 
     cstr_p = JuMP.@constraint(pm.model,
         sum(pt[a] for a in bus_arcs_to)
         ==
         sum(pf[a] for a in bus_arcs_from)
-        + sum(ccm[a] * branch_r[a] for a in bus_lines_to) # *R
+        + sum(ccm[a] * branch_r[a] for a in bus_lines_to)
         - sum(pg for pg in values(bus_pg))
         - sum(pg for pg in values(bus_pg_nd))
         + sum(ps[s] for s in bus_storage)
         + sum(pd for pd in values(bus_pd))
-        #+ sum(gs for gs in values(bus_gs))*w   # TODO: + oder -?
         + sum(pgc[g] for g in bus_gens_nd)  # TODO: + oder -?
+        + sum(pdsm[dsm] for dsm in bus_dsm)
+        + sum(php[hp] for hp in bus_hps)
+        + sum(pcp[cp] for cp in bus_cps)
     )
     cstr_q = JuMP.@constraint(pm.model,
         sum(qt[a] for a in bus_arcs_to)
         ==
         sum(qf[a] for a in bus_arcs_from)
-        + sum(ccm[a] * branch_x[a] for a in bus_lines_to) # *X
+        + sum(ccm[a] * branch_x[a] for a in bus_lines_to)
         - sum(qg for qg in values(bus_qg))
         - sum(qg for qg in values(bus_qg_nd))
         + sum(qs[s] for s in bus_storage)
         + sum(qd for qd in values(bus_qd))
-        #- sum(bs for bs in values(bus_bs))*w   # TODO: + oder -?
         - sum(qgc[g] for g in bus_gens_nd)  # TODO: + oder -?
+        + sum(qdsm[dsm] for dsm in bus_dsm)
+        + sum(qhp[hp] for hp in bus_hps)
     )
 
     if _IM.report_duals(pm)

@@ -98,6 +98,9 @@ Some of the common keys include:
 * `:bus_gens_nd` -- the mapping `Dict(i => [gen_nd["gen_bus"] for (i,gen) in ref[:gen_nd]])`.
 * `:bus_loads` -- the mapping `Dict(i => [load["load_bus"] for (i,load) in ref[:load]])`.
 * `:bus_shunts` -- the mapping `Dict(i => [shunt["shunt_bus"] for (i,shunt) in ref[:shunt]])`.
+* `:bus_dsm` -- the mapping `Dict(i => [dsm["dsm_bus"] for (i,dsm) in ref[:dsm]])`.
+* `:bus_cps` -- the mapping `Dict(i => [cp["cp_bus"] for (i,cp) in ref[:electromobility]])`.
+* `:bus_hps` -- the mapping `Dict(i => [hp["hp_bus"] for (i,hp) in ref[:heatpumps]])`.
 * `:arcs_from_dc` -- the set `[(i,b["f_bus"],b["t_bus"]) for (i,b) in ref[:dcline]]`,
 * `:arcs_to_dc` -- the set `[(i,b["t_bus"],b["f_bus"]) for (i,b) in ref[:dcline]]`,
 * `:arcs_dc` -- the set of arcs from both `arcs_from_dc` and `arcs_to_dc`,
@@ -161,6 +164,24 @@ function ref_add_core!(ref::Dict{Symbol,Any})
             push!(bus_gens[gen["gen_bus"]], i)
         end
         nw_ref[:bus_gens] = bus_gens
+
+        bus_dsm = Dict((i, Int[]) for (i,bus) in nw_ref[:bus])
+        for (i,dsm) in nw_ref[:dsm]
+            push!(bus_dsm[dsm["dsm_bus"]], i)
+        end
+        nw_ref[:bus_dsm] = bus_dsm
+
+        bus_cps = Dict((i, Int[]) for (i,bus) in nw_ref[:bus])
+        for (i,cp) in nw_ref[:electromobility]
+            push!(bus_cps[cp["cp_bus"]], i)
+        end
+        nw_ref[:bus_cps] = bus_cps
+
+        bus_hps = Dict((i, Int[]) for (i,bus) in nw_ref[:bus])
+        for (i,hp) in nw_ref[:heatpumps]
+            push!(bus_hps[hp["hp_bus"]], i)
+        end
+        nw_ref[:bus_hps] = bus_hps
 
         bus_gens_nd = Dict((i, Int[]) for (i,bus) in nw_ref[:bus])
         for (i,gen) in nw_ref[:gen_nd]
