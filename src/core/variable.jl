@@ -332,8 +332,8 @@ function variable_gen_power_curt_imaginary(pm::AbstractPowerModel; nw::Int=nw_id
 
     if bounded
         for (i, gen) in ref(pm, nw, :gen_nd)
-            JuMP.set_lower_bound(qgc[i], 0)
-            JuMP.set_upper_bound(qgc[i], gen["qg"])
+            JuMP.set_lower_bound(qgc[i], gen["qg"])
+            JuMP.set_upper_bound(qgc[i], 0)
         end
     end
 
@@ -1033,9 +1033,43 @@ end
 
 "variables for modeling storage units, includes grid injection and internal variables"
 function variable_battery_storage_power(pm::AbstractPowerModel; kwargs...)
-    variable_storage_power_real(pm; kwargs...)  # Eq. (20) umschreiben!
-    variable_storage_power_imaginary(pm; kwargs...)
+    variable_battery_storage_power_real(pm; kwargs...)  # Eq. (20) umschreiben!
+    variable_battery_storage_power_imaginary(pm; kwargs...)
     variable_storage_energy(pm; kwargs...)  # Eq. (22)
+end
+
+""
+function variable_battery_storage_power_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    ps = var(pm, nw)[:ps] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :storage)], base_name="$(nw)_ps",
+        start = comp_start_value(ref(pm, nw, :storage, i), "ps_start")
+    )
+
+    if bounded
+        for (i, storage) in ref(pm, nw, :storage)
+            JuMP.set_lower_bound(ps[i],  storage["pmin"])
+            JuMP.set_upper_bound(ps[i], storage["pmax"])
+        end
+    end
+
+    report && sol_component_value(pm, nw, :storage, :ps, ids(pm, nw, :storage), ps)
+end
+
+""
+function variable_battery_storage_power_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    qs = var(pm, nw)[:qs] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :storage)], base_name="$(nw)_qs",
+        start = comp_start_value(ref(pm, nw, :storage, i), "qs_start")
+    )
+
+    if bounded
+        for (i, storage) in ref(pm, nw, :storage)
+            JuMP.set_lower_bound(qs[i], storage["qmin"])
+            JuMP.set_upper_bound(qs[i], storage["qmax"])
+        end
+    end
+
+    report && sol_component_value(pm, nw, :storage, :qs, ids(pm, nw, :storage), qs)
 end
 
 ""
@@ -1481,22 +1515,8 @@ function variable_dsm_storage_power_real(pm::AbstractPowerModel; nw::Int=nw_id_d
     if bounded
         dsm = ref(pm, nw, :dsm)
         for (i, s) in dsm
-            lb = -Inf
-            ub = Inf
-            if haskey(s, "p_max")
-                ub = s["p_max"]
-            end
-            if haskey(s, "p_min")
-                lb = s["p_min"]
-            end
-
-            if !isinf(ub)
-                JuMP.set_lower_bound(pdsm[i], lb)
-            end
-            
-            if !isinf(ub)
-                JuMP.set_upper_bound(pdsm[i], ub)
-            end
+            JuMP.set_lower_bound(pdsm[i], s["p_min"])
+            JuMP.set_upper_bound(pdsm[i], s["p_max"])
         end
     end
 
@@ -1511,22 +1531,8 @@ function variable_dsm_storage_power_imaginary(pm::AbstractPowerModel; nw::Int=nw
     if bounded
         dsm = ref(pm, nw, :dsm)
         for (i, s) in dsm
-            lb = -Inf
-            ub = Inf
-            if haskey(s, "p_max")
-                ub = s["p_max"]
-            end
-            if haskey(s, "p_min")
-                lb = s["p_min"]
-            end
-
-            if !isinf(ub)
-                JuMP.set_lower_bound(qdsm[i], lb)
-            end
-            
-            if !isinf(ub)
-                JuMP.set_upper_bound(qdsm[i], ub)
-            end
+            JuMP.set_lower_bound(qdsm[i], s["q_min"])
+            JuMP.set_upper_bound(qdsm[i], s["q_max"])
         end
     end
     report && sol_component_value(pm, nw, :dsm, :qdsm, ids(pm, nw, :dsm), qdsm)
@@ -1596,7 +1602,7 @@ function variable_heat_pump_power_real(pm::AbstractPowerModel; nw::Int=nw_id_def
 
     if bounded
         for (i, hp) in ref(pm, nw, :heatpumps)
-            JuMP.set_lower_bound(php[i], 0)
+            JuMP.set_lower_bound(php[i], hp["p_min"])
             JuMP.set_upper_bound(php[i], hp["p_max"])
         end
     end
@@ -1611,7 +1617,7 @@ function variable_heat_pump_power_imaginary(pm::AbstractPowerModel; nw::Int=nw_i
 
     if bounded
         for (i, hp) in ref(pm, nw, :heatpumps)
-            JuMP.set_lower_bound(qhp[i], 0)
+            JuMP.set_lower_bound(qhp[i], hp["q_min"])
             JuMP.set_upper_bound(qhp[i], hp["q_max"])
         end
     end
@@ -1634,7 +1640,7 @@ function variable_cp_power_real(pm::AbstractPowerModel; nw::Int=nw_id_default, b
 
     if bounded
         for (i, cp) in ref(pm, nw, :electromobility)
-            JuMP.set_lower_bound(pcp[i], 0)
+            JuMP.set_lower_bound(pcp[i], cp["p_min"])
             JuMP.set_upper_bound(pcp[i], cp["p_max"])
         end
     end
@@ -1650,7 +1656,7 @@ function variable_cp_power_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_defau
 
     if bounded
         for (i, cp) in ref(pm, nw, :electromobility)
-            JuMP.set_lower_bound(qcp[i], 0)
+            JuMP.set_lower_bound(qcp[i], cp["q_min"])
             JuMP.set_upper_bound(qcp[i], cp["q_max"])
         end
     end
