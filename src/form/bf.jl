@@ -248,11 +248,13 @@ function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens
 
     pdsm  = get(var(pm, n),  :pdsm, Dict()); _check_var_keys(pdsm, bus_dsm, "active power", "dsm")
     qdsm  = get(var(pm, n),  :qdsm, Dict()); _check_var_keys(qdsm, bus_dsm, "reactive power", "dsm")
-
+    
     php  = get(var(pm, n),  :php, Dict()); _check_var_keys(php, bus_hps, "active power", "heatpumps")
     qhp  = get(var(pm, n),  :qhp, Dict()); _check_var_keys(qhp, bus_hps, "reactive power", "heatpumps")
+    
 
     pcp  = get(var(pm, n),  :pcp, Dict()); _check_var_keys(pcp, bus_cps, "active power", "electromobility")
+    qcp  = get(var(pm, n),  :qcp, Dict()); _check_var_keys(qcp, bus_cps, "reactive power", "electromobility")
 
     # TODO:
     ## add constraints for "anforderungen aus übergelagertem Netz"
@@ -284,7 +286,8 @@ function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens
         + sum(qd for qd in values(bus_qd))
         + sum(qgc[g] for g in bus_gens_nd)
         + sum(qdsm[dsm] for dsm in bus_dsm)
-        + sum(qhp[hp] for hp in bus_hps)
+        #+ sum(qhp[hp] for hp in bus_hps)
+        #+ sum(qcp[cp] for cp in bus_cps)
     )
 
     if _IM.report_duals(pm)

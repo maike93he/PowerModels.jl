@@ -1650,7 +1650,7 @@ end
 
 ""
 function variable_cp_power_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
-    qcp = var(pm, nw)[:qdsm] = JuMP.@variable(pm.model,
+    qcp = var(pm, nw)[:qcp] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :electromobility)], base_name="$(nw)_qcp",
     )
 
