@@ -1033,8 +1033,8 @@ end
 
 "variables for modeling storage units, includes grid injection and internal variables"
 function variable_battery_storage_power(pm::AbstractPowerModel; kwargs...)
-    variable_battery_storage_power_real(pm; kwargs...)  # Eq. (20) umschreiben!
-    variable_battery_storage_power_imaginary(pm; kwargs...)
+    variable_battery_storage_power_real(pm; kwargs...)  # Eq. (21) 
+    variable_battery_storage_power_imaginary(pm; kwargs...) # Eq. (21) 
     variable_storage_energy(pm; kwargs...)  # Eq. (22)
 end
 
@@ -1679,3 +1679,51 @@ function variable_cp_energy(pm::AbstractPowerModel; nw::Int=nw_id_default, bound
 
     report && sol_component_value(pm, nw, :electromobility, :cpe, ids(pm, nw, :electromobility), cpe)
 end
+
+"slack generator variables"
+function variable_slack_gen(pm::AbstractPowerModel; kwargs...)
+    variable_slack_gen_real(pm; kwargs...)  
+    variable_slack_gen_imaginary(pm; kwargs...)  
+end
+
+function variable_slack_gen_real(pm::SOCBFPowerModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
+    pgs = var(pm, nw)[:pgs] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :gen_slack)], base_name="$(nw)_pgs",
+        lower_bound = 0.0
+    )
+    report && sol_component_value(pm, nw, :gen_slack, :pgs, ids(pm, nw, :gen_slack), pgs)
+end
+
+function variable_slack_gen_imaginary(pm::SOCBFPowerModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
+    qgs = var(pm, nw)[:qgs] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :gen_slack)], base_name="$(nw)_qgs",
+        lower_bound = 0.0
+    )
+    report && sol_component_value(pm, nw, :gen_slack, :qgs, ids(pm, nw, :gen_slack), qgs)
+end
+
+"slack variables for HV requirement constraints"
+function variable_slack_HV_requirements(pm::AbstractPowerModel; kwargs...)
+    variable_slack_HV_requirements_real(pm; kwargs...)  
+    variable_slack_HV_requirements_imaginary(pm; kwargs...)  
+end
+
+""
+function variable_slack_HV_requirements_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    phvs = var(pm, nw)[:phvs] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :HV_requirements)], base_name="$(nw)_phvs",
+    )
+
+    report && sol_component_value(pm, nw, :HV_requirements, :phvs, ids(pm, nw, :HV_requirements), phvs)
+end
+
+""
+function variable_slack_HV_requirements_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    qhvs = var(pm, nw)[:qhvs] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :HV_requirements)], base_name="$(nw)_qhvs",
+    )
+
+    report && sol_component_value(pm, nw, :HV_requirements, :qhvs, ids(pm, nw, :HV_requirements), qhvs)
+end
+
+""

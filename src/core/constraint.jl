@@ -337,3 +337,28 @@ function constraint_hp_operation(pm::AbstractSOCBFModelEdisgo, i::Int, nw::Int=n
 
     JuMP.@constraint(pm.model, hp["cop"] * php == hp["pd"] + phs) 
 end
+
+function constraint_HV_requirements(pm::AbstractSOCBFModelEdisgo, i::Int, nw::Int=nw_id_default)
+    hv_req = ref(pm, nw, :HV_requirements, i)
+    phvs = var(pm, nw, :phvs, i)
+    qhvs = var(pm, nw, :qhvs, i)
+
+    if hv_req["flexibility"] == "dsm"
+        pflex = var(pm, nw, :pdsm)
+        qflex = var(pm, nw, :qdsm)
+    elseif hv_req["flexibility"] == "curt"
+        pflex = var(pm, nw, :pgc)
+        qflex = var(pm, nw, :qgc)
+    elseif hv_req["flexibility"] == "storage"
+        pflex = var(pm, nw, :ps)
+        qflex = var(pm, nw, :qs)
+    elseif hv_req["flexibility"] == "hp"
+        pflex = var(pm, nw, :php)
+        qflex = var(pm, nw, :qhp)
+    elseif hv_req["flexibility"] == "cp"
+        pflex = var(pm, nw, :pcp)
+        qflex = var(pm, nw, :qcp)
+    end
+    JuMP.@constraint(pm.model, sum(pflex) - phvs == hv_req["P"])  
+    JuMP.@constraint(pm.model, sum(qflex) - qhvs == hv_req["Q"])    
+end

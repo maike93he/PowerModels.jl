@@ -111,48 +111,53 @@ end
 function build_mn_opf_bf_flex(pm::AbstractPowerModel)
     for (n, network) in nws(pm)
         # VARIABLES
-        #variable_slack_gen(pm, nw=n)
-        variable_bus_voltage(pm, nw=n)  # Eq. (6)
-        variable_branch_power_radial(pm, nw=n)  # branch power <= rate_a -> nicht im Modell bisher
-        variable_branch_current(pm, nw=n)  # Eq. (7) aber mit I²=(rate_a/V_min)²
-        variable_gen_power_curt(pm, nw=n)  # non-disp. power curtailment Eq. (8), (9) #TODO: q neg. -> check constraints
-        variable_battery_storage_power(pm, nw=n)  # storage variables (power, energy) Eq. (20)-(22)
-        variable_cp_power(pm, nw=n)  # TODO: pcp, qcp, cpe
-        variable_dsm_storage_power(pm, nw=n)  # pdsm, qdsm, dsme
-        variable_heat_storage(pm, nw=n)  # phs, hse
-        variable_heat_pump_power(pm, nw=n)  # php, qhp
-        #variable_slack_flex(pm, nw=n)  # TODO: slack variablen für Anforderungen aus dem übergelagerten Netz
+        if ref(pm, 1, :opt_version) == 1
+            variable_bus_voltage(pm, nw=n, bounded=false)
+            variable_branch_power_radial(pm, nw=n, bounded=false)
+            variable_branch_current(pm, nw=n, bounded=false)
+        elseif ref(pm, 1, :opt_version) == 2
+            variable_bus_voltage(pm, nw=n)  # Eq. ()
+            variable_branch_power_radial(pm, nw=n)  # Eq. ():  branch power <= rate_a (s_nom)
+            variable_branch_current(pm, nw=n)  # Eq. ()
+            # variable_slack_grid_restrictions(pm, nw=n)  # TODO
+        # else: throw error: no opt_version nr. $(version) implemented
+        end
+        variable_gen_power_curt(pm, nw=n)  #  Eq. (18)
+        variable_battery_storage_power(pm, nw=n)  # Eq. (19), (20)
+        variable_heat_storage(pm, nw=n)  # Eq. (20)
+        variable_cp_power(pm, nw=n)  #  Eq. (21), (22)
+        variable_heat_pump_power(pm, nw=n)  # Eq. (23)
+        variable_dsm_storage_power(pm, nw=n)  # Eq. (24), (25)
+        variable_slack_gen(pm, nw=n)  # Eq. (26)
+        variable_slack_HV_requirements(pm, nw=n)
 
         # CONSTRAINTS
-        constraint_model_current(pm, nw=n)  # Eq. (5) as SOC
-
-
         for i in ids(pm, :bus, nw=n)  
-            constraint_power_balance_bf(pm, i, nw=n) # Eq. (2)+(3) TODO!!
+            constraint_power_balance_bf(pm, i, nw=n) # Eq. (3), (5)
         end
-
         for i in ids(pm, :branch, nw=n)
-            constraint_voltage_magnitude_difference_radial(pm, i, nw=n) # Eq. (4)
+            constraint_voltage_magnitude_difference_radial(pm, i, nw=n) # Eq. (6)
         end
-
+        constraint_model_current(pm, nw=n)  # Eq. (7) as SOC
         for i in ids(pm, :heatpumps, nw=n)  
-            constraint_hp_operation(pm, i, n) # Eq. (29)
+            constraint_hp_operation(pm, i, n) # Eq. (12)
+        end
+        for i in ids(pm, :HV_requirements, nw=n)  
+            constraint_HV_requirements(pm, i, n) # Eq. (13)-(17)
         end
 
     end
 
     network_ids = sort(collect(nw_ids(pm)))
-
-    
     for kind in ["storage", "heat_storage", "dsm"]
         n_1 = network_ids[1]
         for i in ids(pm, Symbol(kind), nw=n_1)
-            constraint_storage_state(pm, i, nw=n_1, kind=kind)  # Eq. (18)
+            constraint_storage_state(pm, i, nw=n_1, kind=kind)  # Eq. (8)
         end
 
         for n_2 in network_ids[2:end]
             for i in ids(pm, Symbol(kind), nw=n_2)
-                constraint_storage_state(pm, i, n_1, n_2, kind) # Eq. (19)
+                constraint_storage_state(pm, i, n_1, n_2, kind) # Eq. (9)
             end
             n_1 = n_2
         end
@@ -160,15 +165,15 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
 
     n_1 = network_ids[1]
     for i in ids(pm, :electromobility, nw=n_1)
-        constraint_cp_state_initial(pm, n_1, i)  # Eq. (25)
+        constraint_cp_state_initial(pm, n_1, i)  # Eq. (10)
     end
 
     for n_2 in network_ids[2:end]
         for i in ids(pm, :electromobility, nw=n_2)
-            constraint_cp_state(pm, n_1, n_2, i) # Eq. (26)
+            constraint_cp_state(pm, n_1, n_2, i) # Eq. (11)
         end
         n_1 = n_2
     end
 
-    objective_min_losses(pm)
+    objective_min_losses(pm)  # Eq. (1)
 end

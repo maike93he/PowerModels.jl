@@ -6,6 +6,7 @@ function variable_buspair_current_magnitude_sqr(pm::AbstractBFModel; nw::Int=nw_
 
     ccm = var(pm, nw)[:ccm] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :branch)], base_name="$(nw)_ccm",
+        lower_bound = 0.0,
         start = comp_start_value(branch[i], "ccm_start")
     )
 
@@ -37,14 +38,6 @@ end
 function variable_bus_voltage(pm::AbstractBFModel; kwargs...)
     variable_bus_voltage_magnitude_sqr(pm; kwargs...)
 end
-
-""
-# function variable_slack_gen(pm::SOCBFPowerModelEdisgo; kwargs...)
-#     pgs = var(pm, nw)[:pgs] = JuMP.@variable(pm.model,
-#         [i in ids(pm, nw, :gen)], base_name="$(nw)_pgs"
-#     )
-#     report && sol_component_value(pm, nw, :gen, :pgs, ids(pm, nw, :gen), pgs)
-# end
 
 
 """
@@ -234,7 +227,7 @@ end
 
 
 ""
-function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens_nd, bus_arcs_to, bus_arcs_from, bus_lines_to, bus_storage, bus_pg, bus_qg, bus_pg_nd, bus_qg_nd, bus_pd, bus_qd, branch_r, branch_x, bus_dsm, bus_hps, bus_cps)
+function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens_nd, bus_gens_slack, bus_arcs_to, bus_arcs_from, bus_lines_to, bus_storage, bus_pg, bus_qg, bus_pg_nd, bus_qg_nd, bus_pd, bus_qd, branch_r, branch_x, bus_dsm, bus_hps, bus_cps)
     w    = var(pm, n, :w, i)
     pt   = get(var(pm, n),  :p, Dict()); _check_var_keys(pt, bus_arcs_to, "active power", "branch")
     qt   = get(var(pm, n),  :q, Dict()); _check_var_keys(qt, bus_arcs_to, "reactive power", "branch")
@@ -244,28 +237,25 @@ function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens
     qs   = get(var(pm, n),  :qs, Dict()); _check_var_keys(qs, bus_storage, "reactive power", "storage")
     pgc  = get(var(pm, n),  :pgc, Dict()); _check_var_keys(pgc, bus_gens_nd, "active power", "curtailment")
     qgc  = get(var(pm, n),  :qgc, Dict()); _check_var_keys(qgc, bus_gens_nd, "reactive power", "curtailment")
+    pgs  = get(var(pm, n),  :pgs, Dict()); _check_var_keys(pgs, bus_gens_slack, "active power", "slack")
+    qgs  = get(var(pm, n),  :qgs, Dict()); _check_var_keys(qgs, bus_gens_slack, "reactive power", "slack")
     ccm  = get(var(pm, n),  :ccm, Dict()); _check_var_keys(ccm, bus_lines_to, "active power", "branch")
-
     pdsm  = get(var(pm, n),  :pdsm, Dict()); _check_var_keys(pdsm, bus_dsm, "active power", "dsm")
     qdsm  = get(var(pm, n),  :qdsm, Dict()); _check_var_keys(qdsm, bus_dsm, "reactive power", "dsm")
-    
     php  = get(var(pm, n),  :php, Dict()); _check_var_keys(php, bus_hps, "active power", "heatpumps")
     qhp  = get(var(pm, n),  :qhp, Dict()); _check_var_keys(qhp, bus_hps, "reactive power", "heatpumps")
-    
-
     pcp  = get(var(pm, n),  :pcp, Dict()); _check_var_keys(pcp, bus_cps, "active power", "electromobility")
     qcp  = get(var(pm, n),  :qcp, Dict()); _check_var_keys(qcp, bus_cps, "reactive power", "electromobility")
 
     # TODO:
-    ## add constraints for "anforderungen aus übergelagertem Netz"
-    ## add Slack_gen variable + slack_flex variable for flexibilities
-    ## add slack variables to power balance
+    ## version 2: add grid restriction slack variables to power balance
 
     cstr_p = JuMP.@constraint(pm.model,
         sum(pt[a] for a in bus_arcs_to)
         ==
         sum(pf[a] for a in bus_arcs_from)
         + sum(ccm[a] * branch_r[a] for a in bus_lines_to)
+        - sum(pgs[g] for g in bus_gens_slack)
         - sum(pg for pg in values(bus_pg))
         - sum(pg for pg in values(bus_pg_nd))
         + sum(ps[s] for s in bus_storage)
@@ -280,6 +270,7 @@ function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens
         ==
         sum(qf[a] for a in bus_arcs_from)
         + sum(ccm[a] * branch_x[a] for a in bus_lines_to)
+        - sum(qgs[g] for g in bus_gens_slack)
         - sum(qg for qg in values(bus_qg))
         - sum(qg for qg in values(bus_qg_nd))
         + sum(qs[s] for s in bus_storage)

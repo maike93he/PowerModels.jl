@@ -96,6 +96,7 @@ Some of the common keys include:
 * `:buspairs` -- (see `buspair_parameters(ref[:arcs_from], ref[:branch], ref[:bus])`),
 * `:bus_gens` -- the mapping `Dict(i => [gen["gen_bus"] for (i,gen) in ref[:gen]])`.
 * `:bus_gens_nd` -- the mapping `Dict(i => [gen_nd["gen_bus"] for (i,gen) in ref[:gen_nd]])`.
+* `:bus_gens_slack` -- the mapping `Dict(i => [gen_slack["gen_bus"] for (i,gen) in ref[:gen_slack]])`.
 * `:bus_loads` -- the mapping `Dict(i => [load["load_bus"] for (i,load) in ref[:load]])`.
 * `:bus_shunts` -- the mapping `Dict(i => [shunt["shunt_bus"] for (i,shunt) in ref[:shunt]])`.
 * `:bus_dsm` -- the mapping `Dict(i => [dsm["dsm_bus"] for (i,dsm) in ref[:dsm]])`.
@@ -188,6 +189,12 @@ function ref_add_core!(ref::Dict{Symbol,Any})
             push!(bus_gens_nd[gen["gen_bus"]], i)
         end
         nw_ref[:bus_gens_nd] = bus_gens_nd
+
+        bus_gens_slack = Dict((i, Int[]) for (i,bus) in nw_ref[:bus])
+        for (i,gen) in nw_ref[:gen_slack]
+            push!(bus_gens_slack[gen["gen_bus"]], i)
+        end
+        nw_ref[:bus_gens_slack] = bus_gens_slack
 
         bus_storage = Dict((i, Int[]) for (i,bus) in nw_ref[:bus])
         for (i,strg) in nw_ref[:storage]
