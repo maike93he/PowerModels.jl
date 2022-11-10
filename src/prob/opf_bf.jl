@@ -175,5 +175,5 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
         n_1 = n_2
     end
 
-    objective_min_losses(pm)  # Eq. (1)
+    objective_min_line_loading(pm)  # Eq. (1)
 end

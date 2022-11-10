@@ -603,7 +603,7 @@ function objective_max_loadability(pm::AbstractPowerModel)
 end
 
 
-function objective_min_losses(pm::AbstractPowerModel)
+function objective_min_line_loading(pm::AbstractPowerModel)
     nws = nw_ids(pm)
     p = Dict(n => var(pm, n, :p) for n in nws)
     l = Dict(n => 
@@ -615,10 +615,12 @@ function objective_min_losses(pm::AbstractPowerModel)
     s_nom = Dict(n =>
             Dict(i => get(branch, "rate_a", 1.0) for (i,branch) in ref(pm, n, :branch)) 
         for n in nws)# p_max?
+    phvs = Dict(n => var(pm, n, :phvs) for n in nws)
+    qhvs = Dict(n => var(pm, n, :qhvs) for n in nws)
 
     return JuMP.@objective(pm.model, Min,
-        sum(
-            sum( p[n][(b,i,j)]/s_nom[n][b]*l[n][b]*c[n][b] for (b,i,j) in ref(pm, n, :arcs_from))
+        sum(sum((phvs[n][i]+qhvs[n][i]) * 1e6 for (i, flex) in ref(pm, n, :HV_requirements)) for n in nws) +  # minimize slack variables
+        sum(sum(p[n][(b,i,j)]/s_nom[n][b]*l[n][b]*c[n][b] for (b,i,j) in ref(pm, n, :arcs_from))  # minimize line loading
         for n in nws)
     )
 end
