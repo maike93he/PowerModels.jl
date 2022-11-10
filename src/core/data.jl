@@ -1703,6 +1703,16 @@ function _correct_bus_types!(pm_data::Dict{String,<:Any})
             push!(bus_gens[gen["gen_bus"]], i)
         end
     end
+    for (i,gen) in pm_data["gen_nd"]
+        if gen["gen_status"] != 0
+            push!(bus_gens[gen["gen_bus"]], i)
+        end
+    end
+    for (i,gen) in pm_data["gen_slack"]
+        if gen["gen_status"] != 0
+            push!(bus_gens[gen["gen_bus"]], i)
+        end
+    end
 
     slack_found = false
     for (i, bus) in pm_data["bus"]

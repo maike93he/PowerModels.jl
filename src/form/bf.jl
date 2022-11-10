@@ -277,8 +277,8 @@ function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens
         + sum(qd for qd in values(bus_qd))
         + sum(qgc[g] for g in bus_gens_nd)
         + sum(qdsm[dsm] for dsm in bus_dsm)
-        #+ sum(qhp[hp] for hp in bus_hps)
-        #+ sum(qcp[cp] for cp in bus_cps)
+        + sum(qhp[hp] for hp in bus_hps)
+        + sum(qcp[cp] for cp in bus_cps)
     )
 
     if _IM.report_duals(pm)
