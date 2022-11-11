@@ -310,7 +310,7 @@ end
 
 "variable: `pgc[j]` for `j` in `gen_nd`"
 function variable_gen_power_curt_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
-    pgc = var(pm, nw)[:pgc] = JuMP.@variable(pm.model,  # Was macht var()?
+    pgc = var(pm, nw)[:pgc] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :gen_nd)], base_name="$(nw)_pgc"
     )
 
@@ -1047,7 +1047,7 @@ function variable_battery_storage_power_real(pm::AbstractPowerModel; nw::Int=nw_
 
     if bounded
         for (i, storage) in ref(pm, nw, :storage)
-            JuMP.set_lower_bound(ps[i],  storage["pmin"])
+            JuMP.set_lower_bound(ps[i], storage["pmin"])
             JuMP.set_upper_bound(ps[i], storage["pmax"])
         end
     end
@@ -1697,7 +1697,7 @@ end
 function variable_slack_gen_imaginary(pm::SOCBFPowerModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
     qgs = var(pm, nw)[:qgs] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :gen_slack)], base_name="$(nw)_qgs",
-        lower_bound = 0.0
+        upper_bound = 0.0
     )
     report && sol_component_value(pm, nw, :gen_slack, :qgs, ids(pm, nw, :gen_slack), qgs)
 end

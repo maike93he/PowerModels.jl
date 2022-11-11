@@ -243,19 +243,19 @@ function constraint_storage_state(pm::AbstractSOCBFModelEdisgo, n_1::Int, n_2::I
         se_2 = var(pm, n_2, :se, i)
         se_1 = var(pm, n_1, :se, i)
 
-        JuMP.@constraint(pm.model, se_2 - se_1 == time_elapsed*ps_2)
+        JuMP.@constraint(pm.model, se_2 - se_1 == - time_elapsed*ps_2)
     elseif kind == "heat_storage"
         phs_2 = var(pm, n_2, :phs, i)
         hse_2 = var(pm, n_2, :hse, i)
         hse_1 = var(pm, n_1, :hse, i)
 
-        JuMP.@constraint(pm.model, hse_2 - hse_1 == time_elapsed*phs_2)
+        JuMP.@constraint(pm.model, hse_2 - hse_1 == - time_elapsed*phs_2)
     elseif kind == "dsm"
         pdsm_2 = var(pm, n_2, :pdsm, i)
         dsme_2 = var(pm, n_2, :dsme, i)
         dsme_1 = var(pm, n_1, :dsme, i)
 
-        JuMP.@constraint(pm.model, dsme_2 - dsme_1 == time_elapsed*pdsm_2)
+        JuMP.@constraint(pm.model, dsme_2 - dsme_1 == - time_elapsed*pdsm_2)
     end
 end
 
@@ -335,7 +335,7 @@ function constraint_hp_operation(pm::AbstractSOCBFModelEdisgo, i::Int, nw::Int=n
     php = var(pm, nw, :php, i)
     phs = var(pm, nw, :phs, i)
 
-    JuMP.@constraint(pm.model, hp["cop"] * php == hp["pd"] + phs) 
+    JuMP.@constraint(pm.model, hp["cop"] * php == hp["pd"] - phs) 
 end
 
 function constraint_HV_requirements(pm::AbstractSOCBFModelEdisgo, i::Int, nw::Int=nw_id_default)
