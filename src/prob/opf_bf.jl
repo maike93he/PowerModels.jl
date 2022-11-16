@@ -111,11 +111,11 @@ end
 function build_mn_opf_bf_flex(pm::AbstractPowerModel)
     for (n, network) in nws(pm)
         # VARIABLES
-        if (ref(pm, 1, :opt_version) == 1)
+        if (ref(pm, 1, :opt_version) == 1)|(ref(pm, 1, :opt_version) == 3)
             variable_bus_voltage(pm, nw=n, bounded=false)
             variable_branch_power_radial(pm, nw=n, bounded=false)
             variable_branch_current(pm, nw=n, bounded=false)
-        elseif (ref(pm, 1, :opt_version) == 2)|(ref(pm, 1, :opt_version) == 3)
+        elseif (ref(pm, 1, :opt_version) == 2)
             variable_bus_voltage(pm, nw=n)  # Eq. ()
             variable_branch_power_radial(pm, nw=n)  # Eq. ():  branch power <= rate_a (s_nom)
             variable_branch_current(pm, nw=n)  # Eq. ()
