@@ -523,6 +523,7 @@ end
 function variable_branch_power_real_radial(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     p = var(pm, nw)[:p] = JuMP.@variable(pm.model,
         [(l,i,j) in ref(pm, nw, :arcs_from)], base_name="$(nw)_p",
+        lower_bound = 0,
         start = comp_start_value(ref(pm, nw, :branch, l), "p_start")
     )
 
@@ -558,6 +559,7 @@ end
 function variable_branch_power_imaginary_radial(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     q = var(pm, nw)[:q] = JuMP.@variable(pm.model,
         [(l,i,j) in ref(pm, nw, :arcs_from)], base_name="$(nw)_q",
+        lower_bound = 0,
         start = comp_start_value(ref(pm, nw, :branch, l), "q_start")
     )
 
@@ -1696,8 +1698,7 @@ end
 
 function variable_slack_gen_imaginary(pm::SOCBFPowerModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
     qgs = var(pm, nw)[:qgs] = JuMP.@variable(pm.model,
-        [i in ids(pm, nw, :gen_slack)], base_name="$(nw)_qgs",
-        upper_bound = 0.0
+        [i in ids(pm, nw, :gen_slack)], base_name="$(nw)_qgs"
     )
     report && sol_component_value(pm, nw, :gen_slack, :qgs, ids(pm, nw, :gen_slack), qgs)
 end
