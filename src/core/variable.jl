@@ -304,7 +304,7 @@ end
 "generates variables for both `active` and `reactive` non-dispatchable power generation curtailment"
 function variable_gen_power_curt(pm::AbstractPowerModel; kwargs...)
     variable_gen_power_curt_real(pm; kwargs...)
-    variable_gen_power_curt_imaginary(pm; kwargs...)
+    #variable_gen_power_curt_imaginary(pm; kwargs...)
 end
 
 
@@ -1036,7 +1036,7 @@ end
 "variables for modeling storage units, includes grid injection and internal variables"
 function variable_battery_storage_power(pm::AbstractPowerModel; kwargs...)
     variable_battery_storage_power_real(pm; kwargs...)  # Eq. (21) 
-    variable_battery_storage_power_imaginary(pm; kwargs...) # Eq. (21) 
+    #variable_battery_storage_power_imaginary(pm; kwargs...) # Eq. (21) 
     variable_storage_energy(pm; kwargs...)  # Eq. (22)
 end
 
@@ -1504,7 +1504,7 @@ end
 "variables for modeling dsm storage units, includes grid injection and internal variables"
 function variable_dsm_storage_power(pm::AbstractPowerModel; kwargs...)
     variable_dsm_storage_power_real(pm; kwargs...)  # Eq. (34) 
-    variable_dsm_storage_power_imaginary(pm; kwargs...)  # TODO: to add
+    #variable_dsm_storage_power_imaginary(pm; kwargs...)  # TODO: to add
     variable_dsm_storage_energy(pm; kwargs...)  # Eq. (35)
 end
 
@@ -1594,7 +1594,7 @@ end
 "variables for modeling heat pumps, includes grid injection and internal variables"
 function variable_heat_pump_power(pm::AbstractPowerModel; kwargs...)
     variable_heat_pump_power_real(pm; kwargs...)  # Eq. (34) 
-    variable_heat_pump_power_imaginary(pm; kwargs...)  # TODO: to add
+    #variable_heat_pump_power_imaginary(pm; kwargs...)  # TODO: to add
 end
 
 function variable_heat_pump_power_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
@@ -1630,7 +1630,7 @@ end
 "variables for modeling charging points, includes grid injection and internal variables"
 function variable_cp_power(pm::AbstractPowerModel; kwargs...)
     variable_cp_power_real(pm; kwargs...)  # Eq. (34) 
-    variable_cp_power_imaginary(pm; kwargs...)  # TODO: to add
+    #variable_cp_power_imaginary(pm; kwargs...)  # TODO: to add
     variable_cp_energy(pm; kwargs...)  # Eq. (35)
 end
 
@@ -1706,7 +1706,7 @@ end
 "slack variables for HV requirement constraints"
 function variable_slack_HV_requirements(pm::AbstractPowerModel; kwargs...)
     variable_slack_HV_requirements_real(pm; kwargs...)  
-    variable_slack_HV_requirements_imaginary(pm; kwargs...)  
+    #variable_slack_HV_requirements_imaginary(pm; kwargs...)  
 end
 
 ""
