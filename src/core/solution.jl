@@ -48,3 +48,18 @@ function sol_component_value_radial(aim::AbstractPowerModel, n::Int, comp_name::
         _IM.sol(aim, pm_it_sym, n, comp_name, l)[field_name_to] = variables[(l, i, j)]
     end
 end
+
+
+function check_SOC_equality(result, data_edisgo)
+    timesteps = keys(result["solution"]["nw"])
+    branches = keys(data_edisgo["branch"])
+    branch_f_bus = Dict(k => string(data_edisgo["branch"][k]["f_bus"]) for k in branches)
+    soc_eq_dict = Dict()
+    for t in timesteps
+        eq_res = Dict(b => (result["solution"]["nw"][t]["branch"][b]["pf"]^2 
+        + result["solution"]["nw"][t]["branch"][b]["qf"]^2 
+        -result["solution"]["nw"][t]["branch"][b]["ccm"]*result["solution"]["nw"][t]["bus"][branch_f_bus[b]]["w"]) for b in branches)
+        soc_eq_dict[t] = eq_res
+    end
+    return soc_eq_dict
+end

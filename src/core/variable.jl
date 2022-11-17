@@ -1706,25 +1706,41 @@ end
 "slack variables for HV requirement constraints"
 function variable_slack_HV_requirements(pm::AbstractPowerModel; kwargs...)
     variable_slack_HV_requirements_real(pm; kwargs...)  
-    #variable_slack_HV_requirements_imaginary(pm; kwargs...)  
+    variable_slack_HV_requirements_imaginary(pm; kwargs...)  
 end
 
 ""
 function variable_slack_HV_requirements_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     phvs = var(pm, nw)[:phvs] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :HV_requirements)], base_name="$(nw)_phvs",
+        lower_bound = 0.0
     )
 
     report && sol_component_value(pm, nw, :HV_requirements, :phvs, ids(pm, nw, :HV_requirements), phvs)
+
+    phvs2 = var(pm, nw)[:phvs2] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :HV_requirements)], base_name="$(nw)_phvs2",
+        upper_bound = 0.0
+    )
+
+    report && sol_component_value(pm, nw, :HV_requirements, :phvs2, ids(pm, nw, :HV_requirements), phvs2)
 end
 
 ""
 function variable_slack_HV_requirements_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     qhvs = var(pm, nw)[:qhvs] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :HV_requirements)], base_name="$(nw)_qhvs",
+        lower_bound = 0.0
     )
 
     report && sol_component_value(pm, nw, :HV_requirements, :qhvs, ids(pm, nw, :HV_requirements), qhvs)
+
+    qhvs2 = var(pm, nw)[:qhvs2] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :HV_requirements)], base_name="$(nw)_qhvs2",
+        upper_bound = 0.0
+    )
+
+    report && sol_component_value(pm, nw, :HV_requirements, :qhvs2, ids(pm, nw, :HV_requirements), qhvs2)
 end
 
 ""

@@ -255,7 +255,7 @@ function constraint_storage_state(pm::AbstractSOCBFModelEdisgo, n_1::Int, n_2::I
         dsme_2 = var(pm, n_2, :dsme, i)
         dsme_1 = var(pm, n_1, :dsme, i)
 
-        JuMP.@constraint(pm.model, dsme_2 - dsme_1 == - time_elapsed*pdsm_2)
+        JuMP.@constraint(pm.model, dsme_2 - dsme_1 == time_elapsed*pdsm_2)
     end
 end
 
@@ -342,23 +342,25 @@ function constraint_HV_requirements(pm::AbstractSOCBFModelEdisgo, i::Int, nw::In
     hv_req = ref(pm, nw, :HV_requirements, i)
     phvs = var(pm, nw, :phvs, i)
     qhvs = var(pm, nw, :qhvs, i)
+    phvs2 = var(pm, nw, :phvs2, i)
+    qhvs2 = var(pm, nw, :qhvs2, i)
 
     if hv_req["flexibility"] == "dsm"
         pflex = var(pm, nw, :pdsm)
-        qflex = var(pm, nw, :qdsm)
+        qflex = Dict(k => tan(acos(ref(pm, nw, :dsm, k, "pf")))*ref(pm, nw, :dsm, k, "sign") *pflex[k] for k in keys(ref(pm, nw, :dsm)))
     elseif hv_req["flexibility"] == "curt"
         pflex = var(pm, nw, :pgc)
-        qflex = var(pm, nw, :qgc)
+        qflex =Dict(k => tan(acos(ref(pm, nw, :gen_nd, k, "pf")))*ref(pm, nw, :gen_nd, k, "sign") *pflex[k] for k in keys(ref(pm, nw, :gen_nd)))
     elseif hv_req["flexibility"] == "storage"
         pflex = var(pm, nw, :ps)
-        qflex = var(pm, nw, :qs)
+        qflex =Dict(k => tan(acos(ref(pm, nw, :storage, k, "pf")))*ref(pm, nw, :storage, k, "sign") *pflex[k] for k in keys(ref(pm, nw, :storage)))
     elseif hv_req["flexibility"] == "hp"
         pflex = var(pm, nw, :php)
-        qflex = var(pm, nw, :qhp)
+        qflex =Dict(k => tan(acos(ref(pm, nw, :heatpumps, k, "pf")))*ref(pm, nw, :heatpumps, k, "sign") *pflex[k] for k in keys(ref(pm, nw, :heatpumps)))
     elseif hv_req["flexibility"] == "cp"
         pflex = var(pm, nw, :pcp)
-        qflex = var(pm, nw, :qcp)
+        qflex =Dict(k => tan(acos(ref(pm, nw, :electromobility, k, "pf")))*ref(pm, nw, :electromobility, k, "sign") * pflex[k] for k in keys(ref(pm, nw, :electromobility)))
     end
-    JuMP.@constraint(pm.model, sum(pflex) - phvs == hv_req["P"])  
-    JuMP.@constraint(pm.model, sum(qflex) - qhvs == hv_req["Q"])    
+    JuMP.@constraint(pm.model, sum(pflex) + phvs + phvs2 == hv_req["P"])  
+    JuMP.@constraint(pm.model, sum(qflex[i] for i in keys(qflex)) + qhvs + qhvs2 == hv_req["Q"])    
 end

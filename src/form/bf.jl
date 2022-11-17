@@ -234,18 +234,18 @@ function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens
     pf   = get(var(pm, n),  :p, Dict()); _check_var_keys(pf, bus_arcs_from, "active power", "branch")
     qf   = get(var(pm, n),  :q, Dict()); _check_var_keys(qf, bus_arcs_from, "reactive power", "branch")
     ps   = get(var(pm, n),  :ps, Dict()); _check_var_keys(ps, bus_storage, "active power", "storage")
-    qs   = get(var(pm, n),  :qs, Dict()); _check_var_keys(qs, bus_storage, "reactive power", "storage")
+    #qs   = get(var(pm, n),  :qs, Dict()); _check_var_keys(qs, bus_storage, "reactive power", "storage")
     pgc  = get(var(pm, n),  :pgc, Dict()); _check_var_keys(pgc, bus_gens_nd, "active power", "curtailment")
-    qgc  = get(var(pm, n),  :qgc, Dict()); _check_var_keys(qgc, bus_gens_nd, "reactive power", "curtailment")
+    #qgc  = get(var(pm, n),  :qgc, Dict()); _check_var_keys(qgc, bus_gens_nd, "reactive power", "curtailment")
     pgs  = get(var(pm, n),  :pgs, Dict()); _check_var_keys(pgs, bus_gens_slack, "active power", "slack")
     qgs  = get(var(pm, n),  :qgs, Dict()); _check_var_keys(qgs, bus_gens_slack, "reactive power", "slack")
     ccm  = get(var(pm, n),  :ccm, Dict()); _check_var_keys(ccm, bus_lines_to, "active power", "branch")
     pdsm  = get(var(pm, n),  :pdsm, Dict()); _check_var_keys(pdsm, bus_dsm, "active power", "dsm")
-    qdsm  = get(var(pm, n),  :qdsm, Dict()); _check_var_keys(qdsm, bus_dsm, "reactive power", "dsm")
+    #qdsm  = get(var(pm, n),  :qdsm, Dict()); _check_var_keys(qdsm, bus_dsm, "reactive power", "dsm")
     php  = get(var(pm, n),  :php, Dict()); _check_var_keys(php, bus_hps, "active power", "heatpumps")
-    qhp  = get(var(pm, n),  :qhp, Dict()); _check_var_keys(qhp, bus_hps, "reactive power", "heatpumps")
+    #qhp  = get(var(pm, n),  :qhp, Dict()); _check_var_keys(qhp, bus_hps, "reactive power", "heatpumps")
     pcp  = get(var(pm, n),  :pcp, Dict()); _check_var_keys(pcp, bus_cps, "active power", "electromobility")
-    qcp  = get(var(pm, n),  :qcp, Dict()); _check_var_keys(qcp, bus_cps, "reactive power", "electromobility")
+    #qcp  = get(var(pm, n),  :qcp, Dict()); _check_var_keys(qcp, bus_cps, "reactive power", "electromobility")
 
     # TODO:
     ## version 2: add grid restriction slack variables to power balance
@@ -273,16 +273,18 @@ function constraint_power_balance(pm::SOCBFPowerModelEdisgo, n::Int, i, bus_gens
         - sum(qgs[g] for g in bus_gens_slack)
         - sum(qg for qg in values(bus_qg))
         - sum(qg for qg in values(bus_qg_nd))
-        - sum(qs[s] for s in bus_storage)
+        - sum(ps[s] * bus_storage_pf[s] for s in bus_storage)
+        #- sum(qs[s] for s in bus_storage)
         + sum(qd for qd in values(bus_qd))
-        + sum(qgc[g] for g in bus_gens_nd)
-        - sum(qdsm[dsm] for dsm in bus_dsm)
-        + sum(qhp[hp] for hp in bus_hps)
-        + sum(qcp[cp] for cp in bus_cps)
+        + sum(pgc[g] * bus_gens_pf[g] for g in bus_gens_nd)
+        - sum(pdsm[dsm] * bus_dsm_pf[dsm] for dsm in bus_dsm)
+        + sum(php[hp] * bus_hps_pf[hp] for hp in bus_hps)
+        + sum(pcp[cp] *bus_cps_pf[cp] for cp in bus_cps)
+        # + sum(qgc[g] for g in bus_gens_nd)
+        # - sum(qdsm[dsm] for dsm in bus_dsm)
+        # + sum(qhp[hp] for hp in bus_hps)
+        # + sum(qcp[cp] for cp in bus_cps)
     )
-
-    # bus_storage_pf, bus_dsm_pf, bus_hps_pf, bus_cps_pf, bus_gens_pf  * P
-
 
 
     if _IM.report_duals(pm)

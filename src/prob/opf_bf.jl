@@ -112,16 +112,15 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
     for (n, network) in nws(pm)
         # VARIABLES
         if (ref(pm, 1, :opt_version) == 1)
-            variable_bus_voltage(pm, nw=n, bounded=false)
             variable_branch_power_radial(pm, nw=n, bounded=false)
             variable_branch_current(pm, nw=n, bounded=false)
         elseif (ref(pm, 1, :opt_version) == 2)|(ref(pm, 1, :opt_version) == 3)
-            variable_bus_voltage(pm, nw=n)  # Eq. ()
             variable_branch_power_radial(pm, nw=n)  # Eq. ():  branch power <= rate_a (s_nom)
             variable_branch_current(pm, nw=n)  # Eq. ()
             # variable_slack_grid_restrictions(pm, nw=n)  # TODO
         # else: throw error: no opt_version nr. $(version) implemented
         end
+        variable_bus_voltage(pm, nw=n)  # Eq. ()
         variable_gen_power_curt(pm, nw=n)  #  Eq. (18)
         variable_battery_storage_power(pm, nw=n)  # Eq. (19), (20)
         variable_heat_storage(pm, nw=n)  # Eq. (20)
