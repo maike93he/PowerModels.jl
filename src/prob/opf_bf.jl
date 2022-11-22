@@ -120,29 +120,29 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
             # variable_slack_grid_restrictions(pm, nw=n)  # TODO
         # else: throw error: no opt_version nr. $(version) implemented
         end
-        variable_bus_voltage(pm, nw=n)  # Eq. ()
-        variable_gen_power_curt(pm, nw=n)  #  Eq. (18)
-        variable_battery_storage_power(pm, nw=n)  # Eq. (19), (20)
-        variable_heat_storage(pm, nw=n)  # Eq. (20)
-        variable_cp_power(pm, nw=n)  #  Eq. (21), (22)
-        variable_heat_pump_power(pm, nw=n)  # Eq. (23)
-        variable_dsm_storage_power(pm, nw=n)  # Eq. (24), (25)
-        variable_slack_gen(pm, nw=n)  # Eq. (26)
+        variable_bus_voltage(pm, nw=n)  # Eq. (29)
+        variable_gen_power_curt(pm, nw=n)  #  Eq. (20)
+        variable_battery_storage_power(pm, nw=n)  # Eq. (21), (22)
+        variable_heat_storage(pm, nw=n)  # Eq. (22)
+        variable_cp_power(pm, nw=n)  #  Eq. (23), (24)
+        variable_heat_pump_power(pm, nw=n)  # Eq. (25)
+        variable_dsm_storage_power(pm, nw=n)  # Eq. (26), (27)
+        variable_slack_gen(pm, nw=n)  # Eq. (28)
         variable_slack_HV_requirements(pm, nw=n)
 
         # CONSTRAINTS
         for i in ids(pm, :bus, nw=n)  
-            constraint_power_balance_bf(pm, i, nw=n) # Eq. (3), (5)
+            constraint_power_balance_bf(pm, i, nw=n) # Eq. (2)-(5)
         end
         for i in ids(pm, :branch, nw=n)
             constraint_voltage_magnitude_difference_radial(pm, i, nw=n) # Eq. (6)
         end
         constraint_model_current(pm, nw=n)  # Eq. (7) as SOC
         for i in ids(pm, :heatpumps, nw=n)  
-            constraint_hp_operation(pm, i, n) # Eq. (12)
+            constraint_hp_operation(pm, i, n) # Eq. (14)
         end
         for i in ids(pm, :HV_requirements, nw=n)  
-            constraint_HV_requirements(pm, i, n) # Eq. (13)-(17)
+            constraint_HV_requirements(pm, i, n) # Eq. (15)-(19)
         end
 
     end
@@ -151,12 +151,12 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
     for kind in ["storage", "heat_storage", "dsm"]
         n_1 = network_ids[1]
         for i in ids(pm, Symbol(kind), nw=n_1)
-            constraint_storage_state(pm, i, nw=n_1, kind=kind)  # Eq. (8)
+            constraint_storage_state(pm, i, nw=n_1, kind=kind)  # Eq. (8), (10)
         end
 
         for n_2 in network_ids[2:end]
             for i in ids(pm, Symbol(kind), nw=n_2)
-                constraint_storage_state(pm, i, n_1, n_2, kind) # Eq. (9)
+                constraint_storage_state(pm, i, n_1, n_2, kind) # Eq. (9), (11)
             end
             n_1 = n_2
         end
@@ -164,15 +164,15 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
 
     n_1 = network_ids[1]
     for i in ids(pm, :electromobility, nw=n_1)
-        constraint_cp_state_initial(pm, n_1, i)  # Eq. (10)
+        constraint_cp_state_initial(pm, n_1, i)  # Eq. (12)
     end
 
     for n_2 in network_ids[2:end]
         for i in ids(pm, :electromobility, nw=n_2)
-            constraint_cp_state(pm, n_1, n_2, i) # Eq. (11)
+            constraint_cp_state(pm, n_1, n_2, i) # Eq. (13)
         end
         n_1 = n_2
     end
 
-    objective_min_line_loading(pm)  # Eq. (1)  # TODO: Absolutbetrag der Slackvariablen verwenden!
+    objective_min_line_loading(pm)  # Eq. (1)
 end
