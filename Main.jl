@@ -36,5 +36,6 @@ stringdata = JSON.json(exactness)
 print(stringdata)
 println(" ")
 update_data!(data_edisgo_mn, result["solution"])
+
 json_string = JSON.json(data_edisgo_mn)
-print(json_str)
+print(json_string)
