@@ -605,6 +605,8 @@ end
 
 function objective_min_line_loading(pm::AbstractPowerModel)
     nws = nw_ids(pm)
+    ccm = Dict(n => var(pm, n, :ccm) for n in nws)
+    r = Dict(n => Dict(i => get(branch, "br_r", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)
     p = Dict(n => var(pm, n, :p) for n in nws)
     l = Dict(n => 
             Dict(i => get(branch, "length", 1.0) for (i,branch) in ref(pm, n, :branch)) 
@@ -623,7 +625,7 @@ function objective_min_line_loading(pm::AbstractPowerModel)
     return JuMP.@objective(pm.model, Min,
         sum(sum((phvs[n][i]+qhvs[n][i]) * 1e6 for (i, flex) in ref(pm, n, :HV_requirements)) for n in nws) 
         - sum(sum((phvs2[n][i]+qhvs2[n][i]) * 1e6 for (i, flex) in ref(pm, n, :HV_requirements)) for n in nws) # minimize slack variables
-        + sum(sum(p[n][(b,i,j)]/s_nom[n][b]*l[n][b]*c[n][b] for (b,i,j) in ref(pm, n, :arcs_from))  # minimize line loading
-        for n in nws)
+        + sum(sum(ccm[n][b]^2*r[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
+        + sum(sum(p[n][(b,i,j)]/s_nom[n][b]*l[n][b]*c[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws)  # minimize line loading
     )
 end
