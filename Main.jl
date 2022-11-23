@@ -10,8 +10,8 @@ using Gurobi
 const ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => true, "sb" => "yes",
                                         "tol"=>1e-6)
 const gurobi = optimizer_with_attributes(Gurobi.Optimizer, MOI.Silent() => true, "Presolve" => 1,
-                                        "FeasibilityTol"=>1e-6, "QCPDual" =>1)#,
-                                         #"BarQCPConvTol" => 1e-12), "BarHomogeneous"=> 1)
+                                        "FeasibilityTol"=>1e-4, "QCPDual" =>1,
+                                         "BarQCPConvTol" => 1e-12, "BarHomogeneous"=> 1)
 
 json_str = readline(stdin)
 ding0_grid = ARGS[1]

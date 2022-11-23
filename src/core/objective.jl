@@ -625,11 +625,7 @@ function objective_min_line_loading(pm::AbstractPowerModel)
     return JuMP.@objective(pm.model, Min,
         sum(sum((phvs[n][i]+qhvs[n][i]) * 1e6 for (i, flex) in ref(pm, n, :HV_requirements)) for n in nws) 
         - sum(sum((phvs2[n][i]+qhvs2[n][i]) * 1e6 for (i, flex) in ref(pm, n, :HV_requirements)) for n in nws) # minimize slack variables
-<<<<<<< HEAD
         + sum(sum(ccm[n][b]^2*r[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
-=======
-        + sum(sum(ccm[n][b]^2*r[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize losses
->>>>>>> 018f8ec8f4ecbe3a64827cf23f80101c64ad32f4
         + sum(sum(p[n][(b,i,j)]/s_nom[n][b]*l[n][b]*c[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws)  # minimize line loading
     )
 end
