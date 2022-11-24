@@ -618,9 +618,9 @@ function objective_min_line_loading(pm::AbstractPowerModel)
             Dict(i => get(branch, "rate_a", 1.0) for (i,branch) in ref(pm, n, :branch)) 
         for n in nws)# p_max?
     phvs = Dict(n => var(pm, n, :phvs) for n in nws)
-    qhvs = Dict(n => var(pm, n, :qhvs) for n in nws)
+    #qhvs = Dict(n => var(pm, n, :qhvs) for n in nws)
     phvs2 = Dict(n => var(pm, n, :phvs2) for n in nws)
-    qhvs2 = Dict(n => var(pm, n, :qhvs2) for n in nws)
+    #qhvs2 = Dict(n => var(pm, n, :qhvs2) for n in nws)
 
     return JuMP.@objective(pm.model, Min,
         sum(sum(phvs[n][i] * 1e6 for (i, flex) in ref(pm, n, :HV_requirements)) for n in nws) 
