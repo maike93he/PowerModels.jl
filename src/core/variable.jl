@@ -1706,7 +1706,7 @@ end
 "slack variables for HV requirement constraints"
 function variable_slack_HV_requirements(pm::AbstractPowerModel; kwargs...)
     variable_slack_HV_requirements_real(pm; kwargs...)  
-    variable_slack_HV_requirements_imaginary(pm; kwargs...)  
+    #variable_slack_HV_requirements_imaginary(pm; kwargs...)  
 end
 
 ""
