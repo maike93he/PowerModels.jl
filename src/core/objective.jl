@@ -603,7 +603,7 @@ function objective_max_loadability(pm::AbstractPowerModel)
 end
 
 
-function objective_min_line_loading(pm::AbstractPowerModel)
+function objective_min_line_loading(pm::AbstractBFModelEdisgo)
     nws = nw_ids(pm)
     ccm = Dict(n => var(pm, n, :ccm) for n in nws)
     r = Dict(n => Dict(i => get(branch, "br_r", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)

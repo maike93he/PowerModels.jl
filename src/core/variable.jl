@@ -1689,7 +1689,7 @@ function variable_cp_energy(pm::AbstractPowerModel; nw::Int=nw_id_default, bound
 end
 
 "heat pump slack variable"
-function variable_slack_hp(pm::SOCBFPowerModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
+function variable_slack_hp(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
     phps = var(pm, nw)[:phps] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :heatpumps)], base_name="$(nw)_phps",
         lower_bound = 0.0
@@ -1698,12 +1698,12 @@ function variable_slack_hp(pm::SOCBFPowerModelEdisgo; nw::Int=nw_id_default, rep
 end
 
 "slack generator variables"
-function variable_slack_gen(pm::AbstractPowerModel; kwargs...)
+function variable_slack_gen(pm::AbstractBFModelEdisgo; kwargs...)
     variable_slack_gen_real(pm; kwargs...)  
     variable_slack_gen_imaginary(pm; kwargs...)  
 end
 
-function variable_slack_gen_real(pm::SOCBFPowerModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
+function variable_slack_gen_real(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
     pgs = var(pm, nw)[:pgs] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :gen_slack)], base_name="$(nw)_pgs",
         lower_bound = 0.0
@@ -1711,7 +1711,7 @@ function variable_slack_gen_real(pm::SOCBFPowerModelEdisgo; nw::Int=nw_id_defaul
     report && sol_component_value(pm, nw, :gen_slack, :pgs, ids(pm, nw, :gen_slack), pgs)
 end
 
-function variable_slack_gen_imaginary(pm::SOCBFPowerModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
+function variable_slack_gen_imaginary(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
     qgs = var(pm, nw)[:qgs] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :gen_slack)], base_name="$(nw)_qgs"
     )
