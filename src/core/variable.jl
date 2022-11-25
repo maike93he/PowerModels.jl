@@ -1570,6 +1570,12 @@ function variable_heat_storage_power(pm::AbstractPowerModel; nw::Int=nw_id_defau
         [i in ids(pm, nw, :heat_storage)], base_name="$(nw)_phs",
     )
 
+    if bounded
+        for (i, hs) in ref(pm, nw, :heat_storage)
+            JuMP.set_lower_bound(phs[i], -hs["capacity"])
+            JuMP.set_upper_bound(phs[i], hs["capacity"])
+        end
+    end
     report && sol_component_value(pm, nw, :heat_storage, :phs, ids(pm, nw, :heat_storage), phs)
 end
 
