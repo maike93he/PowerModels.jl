@@ -332,10 +332,11 @@ end
 
 function constraint_hp_operation(pm::AbstractSOCBFModelEdisgo, i::Int, nw::Int=nw_id_default)
     hp = ref(pm, nw, :heatpumps, i)
+    phps = var(pm, nw, :phps, i)
     php = var(pm, nw, :php, i)
     phs = var(pm, nw, :phs, i)
 
-    JuMP.@constraint(pm.model, hp["cop"] * php == hp["pd"] - phs) 
+    JuMP.@constraint(pm.model, hp["cop"] * (php+phps) == hp["pd"] - phs) 
 end
 
 function constraint_HV_requirements(pm::AbstractSOCBFModelEdisgo, i::Int, nw::Int=nw_id_default)

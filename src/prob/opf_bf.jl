@@ -129,6 +129,7 @@ function build_mn_opf_bf_flex(pm::AbstractPowerModel)
         variable_dsm_storage_power(pm, nw=n)  # Eq. (26), (27)
         variable_slack_gen(pm, nw=n)  # Eq. (28)
         variable_slack_HV_requirements(pm, nw=n)
+        variable_slack_hp(pm, nw=n)
 
         # CONSTRAINTS
         for i in ids(pm, :bus, nw=n)  

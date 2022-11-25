@@ -1682,6 +1682,15 @@ function variable_cp_energy(pm::AbstractPowerModel; nw::Int=nw_id_default, bound
     report && sol_component_value(pm, nw, :electromobility, :cpe, ids(pm, nw, :electromobility), cpe)
 end
 
+"heat pump slack variable"
+function variable_slack_hp(pm::SOCBFPowerModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
+    phps = var(pm, nw)[:phps] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :heatpumps)], base_name="$(nw)_phps",
+        lower_bound = 0.0
+    )
+    report && sol_component_value(pm, nw, :heatpumps, :phps, ids(pm, nw, :heatpumps), phps)
+end
+
 "slack generator variables"
 function variable_slack_gen(pm::AbstractPowerModel; kwargs...)
     variable_slack_gen_real(pm; kwargs...)  
