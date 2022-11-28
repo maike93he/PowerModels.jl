@@ -211,7 +211,7 @@ function constraint_power_balance_bf(pm::AbstractPowerModel, i::Int; nw::Int=nw_
 end
 
 "power balance for radial branch flow model" 
-function constraint_power_balance_bf(pm::AbstractBFModelEdisgo, i::Int; nw::Int=nw_id_default)
+function constraint_power_balance_bf(pm::SOCBFPowerModelEdisgo, i::Int; nw::Int=nw_id_default)
     bus = ref(pm, nw, :bus, i)
     bus_lines_to = ref(pm, nw, :bus_lines_to, i)
     bus_arcs_to = ref(pm, nw, :bus_arcs_to, i)
@@ -833,7 +833,7 @@ function constraint_voltage_magnitude_difference(pm::AbstractPowerModel, i::Int;
 end
 
 ""
-function constraint_voltage_magnitude_difference_radial(pm::AbstractBFModelEdisgo, i::Int; nw::Int=nw_id_default)
+function constraint_voltage_magnitude_difference_radial(pm::SOCBFPowerModelEdisgo, i::Int; nw::Int=nw_id_default)
     branch = ref(pm, nw, :branch, i)
     f_bus = branch["f_bus"]
     t_bus = branch["t_bus"]
@@ -961,7 +961,7 @@ end
 ""
 
 ""
-function constraint_storage_state(pm::AbstractBFModelEdisgo, i::Int; nw::Int=nw_id_default, kind::String)
+function constraint_storage_state(pm::SOCBFPowerModelEdisgo, i::Int; nw::Int=nw_id_default, kind::String)
     storage = ref(pm, nw, Symbol(kind), i)
 
     if haskey(ref(pm, nw), :time_elapsed)
@@ -975,7 +975,7 @@ function constraint_storage_state(pm::AbstractBFModelEdisgo, i::Int; nw::Int=nw_
 end
 
 ""
-function constraint_storage_state(pm::AbstractBFModelEdisgo, i::Int, nw_1::Int, nw_2::Int, kind::String)
+function constraint_storage_state(pm::SOCBFPowerModelEdisgo, i::Int, nw_1::Int, nw_2::Int, kind::String)
     storage = ref(pm, nw_2, Symbol(kind), i)
 
     if haskey(ref(pm, nw_2), :time_elapsed)

@@ -108,7 +108,7 @@ end
 
 
 "Build multinetwork branch flow OPF with multiple flexibilities"
-function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
+function build_mn_opf_bf_flex(pm::AbstractPowerModel)
     for (n, network) in nws(pm)
         # VARIABLES
         if (ref(pm, 1, :opt_version) == 1)|(ref(pm, 1, :opt_version) == 3)

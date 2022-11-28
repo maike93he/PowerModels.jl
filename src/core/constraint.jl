@@ -212,7 +212,7 @@ end
 
 ""
 
-function constraint_storage_state_initial(pm::AbstractBFModelEdisgo, n::Int, i::Int, energy, charge_eff, discharge_eff, time_elapsed, kind)
+function constraint_storage_state_initial(pm::AbstractSOCBFModelEdisgo, n::Int, i::Int, energy, charge_eff, discharge_eff, time_elapsed, kind)
     if kind == "storage"
         se = var(pm, n, :se, i)
         JuMP.@constraint(pm.model, se == energy)
@@ -237,7 +237,7 @@ end
 
 ""
 
-function constraint_storage_state(pm::AbstractBFModelEdisgo, n_1::Int, n_2::Int, i::Int, charge_eff, discharge_eff, time_elapsed, kind)
+function constraint_storage_state(pm::AbstractSOCBFModelEdisgo, n_1::Int, n_2::Int, i::Int, charge_eff, discharge_eff, time_elapsed, kind)
     if kind == "storage"
         ps_2 = var(pm, n_2, :ps, i)
         se_2 = var(pm, n_2, :se, i)
@@ -297,7 +297,7 @@ end
 
 """ Creates constraints for EV charging per charging park"""
 
-function constraint_cp_state_initial(pm::AbstractBFModelEdisgo, n::Int, i::Int)
+function constraint_cp_state_initial(pm::AbstractSOCBFModelEdisgo, n::Int, i::Int)
     if haskey(ref(pm, n), :time_elapsed)
         time_elapsed = ref(pm, n, :time_elapsed)
     else
@@ -313,7 +313,7 @@ end
 
 ""
 
-function constraint_cp_state(pm::AbstractBFModelEdisgo, n_1::Int, n_2::Int, i::Int)
+function constraint_cp_state(pm::AbstractSOCBFModelEdisgo, n_1::Int, n_2::Int, i::Int)
     if haskey(ref(pm, n_1), :time_elapsed)
         time_elapsed = ref(pm, n_1, :time_elapsed)
     else
@@ -330,7 +330,7 @@ end
 
 """ Creates constraints for heat pump operation"""
 
-function constraint_hp_operation(pm::AbstractBFModelEdisgo, i::Int, nw::Int=nw_id_default)
+function constraint_hp_operation(pm::AbstractSOCBFModelEdisgo, i::Int, nw::Int=nw_id_default)
     hp = ref(pm, nw, :heatpumps, i)
     phps = var(pm, nw, :phps, i)
     php = var(pm, nw, :php, i)
@@ -339,7 +339,7 @@ function constraint_hp_operation(pm::AbstractBFModelEdisgo, i::Int, nw::Int=nw_i
     JuMP.@constraint(pm.model, hp["cop"] * (php+phps) == hp["pd"] - phs) 
 end
 
-function constraint_HV_requirements(pm::AbstractBFModelEdisgo, i::Int, nw::Int=nw_id_default)
+function constraint_HV_requirements(pm::AbstractSOCBFModelEdisgo, i::Int, nw::Int=nw_id_default)
     hv_req = ref(pm, nw, :HV_requirements, i)
     phvs = var(pm, nw, :phvs, i)
     #qhvs = var(pm, nw, :qhvs, i)
