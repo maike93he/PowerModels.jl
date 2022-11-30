@@ -343,8 +343,6 @@ function constraint_HV_requirements(pm::AbstractBFModelEdisgo, i::Int, nw::Int=n
     hv_req = ref(pm, nw, :HV_requirements, i)
     phvs = var(pm, nw, :phvs, i)
     #qhvs = var(pm, nw, :qhvs, i)
-    phvs2 = var(pm, nw, :phvs2, i)
-    #qhvs2 = var(pm, nw, :qhvs2, i)
 
     if hv_req["flexibility"] == "dsm"
         pflex = var(pm, nw, :pdsm)
@@ -362,6 +360,6 @@ function constraint_HV_requirements(pm::AbstractBFModelEdisgo, i::Int, nw::Int=n
         pflex = var(pm, nw, :pcp)
         #qflex =Dict(k => tan(acos(ref(pm, nw, :electromobility, k, "pf")))*ref(pm, nw, :electromobility, k, "sign") * pflex[k] for k in keys(ref(pm, nw, :electromobility)))
     end
-    JuMP.@constraint(pm.model, sum(pflex) + phvs + phvs2 == hv_req["P"])  
-    #JuMP.@constraint(pm.model, sum(qflex[i] for i in keys(qflex)) + qhvs + qhvs2 == hv_req["Q"])    
+    JuMP.@constraint(pm.model, sum(pflex) + phvs == hv_req["P"])  
+    #JuMP.@constraint(pm.model, sum(qflex[i] for i in keys(qflex)) + qhvs == hv_req["Q"])    
 end
