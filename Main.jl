@@ -8,7 +8,7 @@ using JSON
 using Gurobi
 
 const ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => true, "sb" => "yes",
-                                        "tol"=>1e-6)
+                                        "tol"=>1e-4)
 const gurobi = optimizer_with_attributes(Gurobi.Optimizer, MOI.Silent() => false, "Presolve" => 1,
                                         "FeasibilityTol"=>1e-4, "QCPDual" =>1,
                                          "BarQCPConvTol" => 1e-12, "BarHomogeneous"=> 1)
@@ -28,7 +28,7 @@ if method == "soc"
   result = solve_mn_opf_bf_flex(data_edisgo_mn, SOCBFPowerModelEdisgo, gurobi)
 elseif method == "nc"
   # Non-Convex
-  result = solve_mn_opf_flex(data_edisgo_mn, ACRPowerModel, ipopt)
+  result = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt)
 end
 
 exactness = check_SOC_equality(result, data_edisgo)
