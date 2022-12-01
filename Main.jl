@@ -7,37 +7,37 @@ using JuMP
 using JSON
 using Gurobi
 
-const ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => true, "sb" => "yes", "tol"=>1e-4)
-const gurobi = optimizer_with_attributes(Gurobi.Optimizer, MOI.Silent() => false, "Presolve" => 1, "FeasibilityTol"=>1e-4, "QCPDual" =>1, "BarQCPConvTol" => 1e-12, "BarHomogeneous"=> 1)
-
 json_str = readline(stdin)
 ding0_grid = ARGS[1]
 results_path = ARGS[2]
 method = ARGS[3]
+silence_moi = ARGS[4].=="True"
 
 function optimize_edisgo()                                        
   # read in data and create multinetwork
   data_edisgo = parse_json(json_str)
   data_edisgo_mn = make_multinetwork(data_edisgo)
 
-  # solve opf with soc or nc method
-  if method == "soc"
-    # Second order cone
+  if method == "soc" # Second order cone
+    # Set solver attributes
+    gurobi = optimizer_with_attributes(Gurobi.Optimizer, MOI.Silent() => silence_moi, "Presolve" => 1, "FeasibilityTol"=>1e-4, "QCPDual" =>1, "BarQCPConvTol" => 1e-12, "BarHomogeneous"=> 1, "NumericFocus"=> 1)
+    # Solve SOC model
     result = solve_mn_opf_bf_flex(data_edisgo_mn, SOCBFPowerModelEdisgo, gurobi)
-  elseif method == "nc"
-    # Non-Convex
+    # Check if SOC constraint is tight
+    exactness = check_SOC_equality(result, data_edisgo)
+    open(joinpath(results_path, ding0_grid*"_SOC_tightness.json"), "w") do f
+        write(f, JSON.json(exactness))
+    end
+  elseif method == "nc" # Non-Convex
+    # Set solver attributes
+    ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => silence_moi, "sb" => "yes", "tol"=>1e-4)
+    # Solve NC model
     result = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt)
   end
 
-  exactness = check_SOC_equality(result, data_edisgo)
-  stringdata = JSON.json(exactness)
-  #print(stringdata)
-  #println(" ")
+  # Update network data with optimization results and print to stdout
   update_data!(data_edisgo_mn, result["solution"])
-
-  json_string = JSON.json(data_edisgo_mn)
-  #print(json_string)
-  return stringdata, json_string
+  print(JSON.json(data_edisgo_mn))
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
