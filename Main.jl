@@ -7,6 +7,8 @@ using JuMP
 using JSON
 using Gurobi
 
+logger_config!("debug")
+
 json_str = readline(stdin)
 ding0_grid = ARGS[1]
 results_path = ARGS[2]
