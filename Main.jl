@@ -22,7 +22,7 @@ function optimize_edisgo()
 
   if method == "soc" # Second order cone
     # Set solver attributes
-    gurobi = optimizer_with_attributes(Gurobi.Optimizer, MOI.Silent() => silence_moi, "Presolve" => 1, "FeasibilityTol"=>1e-4, "QCPDual" =>1, "BarQCPConvTol" => 1e-12, "BarHomogeneous"=> 1, "NumericFocus"=> 1)
+    gurobi = optimizer_with_attributes(Gurobi.Optimizer, MOI.Silent() => silence_moi, "Presolve" => 1,  "QCPDual" =>1)#, "BarQCPConvTol" => 1e-12, "BarHomogeneous"=> 1)#,"FeasibilityTol"=>1e-4, "NumericFocus"=> 1)
     # Solve SOC model
     result = solve_mn_opf_bf_flex(data_edisgo_mn, SOCBFPowerModelEdisgo, gurobi)
     # Check if SOC constraint is tight
