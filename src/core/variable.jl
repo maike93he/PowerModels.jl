@@ -524,6 +524,7 @@ function variable_branch_power_real_radial(pm::AbstractPowerModel; nw::Int=nw_id
     p = var(pm, nw)[:p] = JuMP.@variable(pm.model,
         [(l,i,j) in ref(pm, nw, :arcs_from)], base_name="$(nw)_p",
         lower_bound = 0,
+        upper_bound = 1e5,
         start = comp_start_value(ref(pm, nw, :branch, l), "p_start")
     )
 
@@ -560,6 +561,7 @@ function variable_branch_power_imaginary_radial(pm::AbstractPowerModel; nw::Int=
     q = var(pm, nw)[:q] = JuMP.@variable(pm.model,
         [(l,i,j) in ref(pm, nw, :arcs_from)], base_name="$(nw)_q",
         lower_bound = 0,
+        upper_bound = 1e5,
         start = comp_start_value(ref(pm, nw, :branch, l), "q_start")
     )
 

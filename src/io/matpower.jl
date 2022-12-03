@@ -26,7 +26,9 @@ end
 
 const _mp_data_names = ["mpc.version", "mpc.baseMVA", "mpc.bus", "mpc.gen",
     "mpc.branch", "mpc.dcline", "mpc.gencost", "mpc.dclinecost",
-    "mpc.bus_name", "mpc.storage", "mpc.switch"
+    "mpc.bus_name", "mpc.storage", "mpc.switch", 
+    "mpc.gen_nd", "mpc.gen_slack", "mpc.electromobility",  "mpc.heatpumps",  
+    "mpc.heat_storage",  "mpc.dsm",  "mpc.HV_requirements"
 ]
 
 const _mp_bus_columns = [
@@ -365,6 +367,27 @@ function _matpower_to_powermodels!(mp_data::Dict{String,<:Any})
     if !haskey(pm_data, "switch")
         pm_data["switch"] = []
     end
+    if !haskey(pm_data, "gen_nd")
+        pm_data["gen_nd"] = []
+    end
+    if !haskey(pm_data, "gen_slack")
+        pm_data["gen_slack"] = []
+    end
+    if !haskey(pm_data, "electromobility")
+        pm_data["electromobility"] = []
+    end
+    if !haskey(pm_data, "heatpumps")
+        pm_data["heatpumps"] = []
+    end
+    if !haskey(pm_data, "heat_storage")
+        pm_data["heat_storage"] = []
+    end
+    if !haskey(pm_data, "dsm")
+        pm_data["dsm"] = []
+    end
+    if !haskey(pm_data, "HV_requirements")
+        pm_data["HV_requirements"] = []
+    end
 
     # translate component models
     _mp2pm_branch!(pm_data)
@@ -376,7 +399,7 @@ function _matpower_to_powermodels!(mp_data::Dict{String,<:Any})
     # merge data tables
     _merge_bus_name_data!(pm_data)
     _merge_cost_data!(pm_data)
-    _merge_generic_data!(pm_data)
+    #_merge_generic_data!(pm_data)
 
     # split loads and shunts from buses
     _split_loads_shunts!(pm_data)
@@ -384,7 +407,8 @@ function _matpower_to_powermodels!(mp_data::Dict{String,<:Any})
     # use once available
     _IM.arrays_to_dicts!(pm_data)
 
-    for optional in ["dcline", "load", "shunt", "storage", "switch"]
+    for optional in ["dcline", "load", "shunt", "storage", "switch", "gen_nd", "gen_slack", 
+        "electromobility", "heatpumps", "heat_storage", "dsm", "HV_requirements"]
         if length(pm_data[optional]) == 0
             pm_data[optional] = Dict{String,Any}()
         end
