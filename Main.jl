@@ -32,7 +32,7 @@ function optimize_edisgo()
     end
   elseif method == "nc" # Non-Convex
     # Set solver attributes
-    ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => silence_moi, "sb" => "yes", "tol"=>1e-4)
+    ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => silence_moi, "sb" => "yes")#, "tol"=>1e-4)
     # Solve NC model
     result = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt)
   end
