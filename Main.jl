@@ -26,7 +26,7 @@ function optimize_edisgo()
     # Solve SOC model
     result_soc = solve_mn_opf_bf_flex(data_edisgo_mn, SOCBFPowerModelEdisgo, gurobi)
     # Check if SOC constraint is tight
-    exactness = check_SOC_equality(result, data_edisgo)
+    exactness = check_SOC_equality(result_soc, data_edisgo)
     open(joinpath(results_path, ding0_grid*"_SOC_tightness.json"), "w") do f
         write(f, JSON.json(exactness))
     end
