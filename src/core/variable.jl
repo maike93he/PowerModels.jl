@@ -311,7 +311,8 @@ end
 "variable: `pgc[j]` for `j` in `gen_nd`"
 function variable_gen_power_curt_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     pgc = var(pm, nw)[:pgc] = JuMP.@variable(pm.model,
-        [i in ids(pm, nw, :gen_nd)], base_name="$(nw)_pgc"
+        [i in ids(pm, nw, :gen_nd)], base_name="$(nw)_pgc",
+        start = comp_start_value(ref(pm, nw, :gen_nd, i), "pgc_start")
     )
 
     if bounded
@@ -1514,6 +1515,7 @@ end
 function variable_dsm_storage_power_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     pdsm = var(pm, nw)[:pdsm] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :dsm)], base_name="$(nw)_pdsm",
+        start = comp_start_value(ref(pm, nw, :dsm, i), "pdsm_start")
     )
 
     if bounded
@@ -1546,6 +1548,8 @@ end
 function variable_dsm_storage_energy(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     dsme = var(pm, nw)[:dsme] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :dsm)], base_name="$(nw)_dsme",
+        start = comp_start_value(ref(pm, nw, :dsm, i), "dsme_start")
+
     )
 
     if bounded
@@ -1570,6 +1574,8 @@ end
 function variable_heat_storage_power(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     phs = var(pm, nw)[:phs] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :heat_storage)], base_name="$(nw)_phs",
+        start = comp_start_value(ref(pm, nw, :heat_storage, i), "phs_start")
+
     )
 
     if bounded
@@ -1585,6 +1591,7 @@ end
 function variable_heat_storage_energy(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     hse = var(pm, nw)[:hse] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :heat_storage)], base_name="$(nw)_hse",
+        start = comp_start_value(ref(pm, nw, :heat_storage, i), "hse_start")
     )
 
     if bounded
@@ -1608,6 +1615,8 @@ end
 function variable_heat_pump_power_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     php = var(pm, nw)[:php] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :heatpumps)], base_name="$(nw)_php",
+        start = comp_start_value(ref(pm, nw, :heatpumps, i), "php_start")
+
     )
 
     if bounded
@@ -1646,6 +1655,8 @@ end
 function variable_cp_power_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     pcp = var(pm, nw)[:pcp] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :electromobility)], base_name="$(nw)_pcp",
+        start = comp_start_value(ref(pm, nw, :electromobility, i), "pcp_start")
+
     )
 
     if bounded
@@ -1678,6 +1689,8 @@ end
 function variable_cp_energy(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     cpe = var(pm, nw)[:cpe] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :electromobility)], base_name="$(nw)_cpe",
+        start = comp_start_value(ref(pm, nw, :electromobility, i), "cpe_start")
+
     )
 
     if bounded

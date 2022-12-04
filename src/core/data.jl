@@ -750,6 +750,50 @@ function set_ac_pf_start_values!(network::Dict{String,<:Any})
     end
 end
 
+function set_ac_bf_start_values!(network::Dict{String,<:Any})
+    for (i,bus) in network["bus"]
+        bus["w_start"] = bus["w"]
+    end
+
+    for (i,branch) in network["branch"]
+        branch["ccm_start"] = branch["ccm"]
+    end
+
+    for (i,gen) in network["gen_nd"] # TODO: check start value einfügen in Variablenerzeugung
+        gen["pgc_start"] = gen["pgc"]
+    end
+
+    for (i,gen) in network["gen_slack"]
+        gen["pgs_start"] = gen["pgs"]
+        gen["qgs_start"] = gen["qgs"]
+    end
+
+    for (i,dsm) in network["dsm"]
+        dsm["pdsm_start"] = dsm["pdsm"]
+        dsm["dsme_start"] = dsm["dsme"]
+    end
+
+    for (i,s) in network["storage"]
+        s["ps_start"] = s["ps"]
+        s["se_start"] = s["se"]
+    end
+
+    for (i,cp) in network["electromobility"]
+        cp["pcp_start"] = cp["pcp"]
+    end
+
+    for (i,hp) in network["heatpumps"]
+        hp["php_start"] = hp["php"]
+    end
+
+    for (i,hs) in network["heat_storage"]
+        hs["phs_start"] = hs["phs"]
+        hs["hse_start"] = hs["hse"]
+    end
+
+
+end
+
 
 "assumes a valid ac solution is included in the data and computes the branch flow values"
 function calc_branch_flow_ac(data::Dict{String,<:Any})
