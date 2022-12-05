@@ -7,7 +7,6 @@ function variable_buspair_current_magnitude_sqr(pm::AbstractBFModel; nw::Int=nw_
     ccm = var(pm, nw)[:ccm] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :branch)], base_name="$(nw)_ccm",
         lower_bound = 0.0,
-        upper_bound = 10,
         start = comp_start_value(branch[i], "ccm_start")
     )
 
