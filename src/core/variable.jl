@@ -525,7 +525,7 @@ function variable_branch_power_real_radial(pm::AbstractPowerModel; nw::Int=nw_id
     p = var(pm, nw)[:p] = JuMP.@variable(pm.model,
         [(l,i,j) in ref(pm, nw, :arcs_from)], base_name="$(nw)_p",
         lower_bound = 0,
-        upper_bound = 1e5,
+        #upper_bound = 1e5,
         start = comp_start_value(ref(pm, nw, :branch, l), "p_start")
     )
 
@@ -561,8 +561,8 @@ end
 function variable_branch_power_imaginary_radial(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     q = var(pm, nw)[:q] = JuMP.@variable(pm.model,
         [(l,i,j) in ref(pm, nw, :arcs_from)], base_name="$(nw)_q",
-        lower_bound = 0,
-        upper_bound = 1e5,
+        #lower_bound = 0,
+        #upper_bound = 1e5,
         start = comp_start_value(ref(pm, nw, :branch, l), "q_start")
     )
 
@@ -572,7 +572,7 @@ function variable_branch_power_imaginary_radial(pm::AbstractPowerModel; nw::Int=
         for arc in ref(pm, nw, :arcs_from)
             l,i,j = arc
             if !isinf(flow_lb[l])
-                JuMP.set_lower_bound(q[arc], 0)
+                JuMP.set_lower_bound(q[arc], flow_lb[l])
             end
             if !isinf(flow_ub[l])
                 JuMP.set_upper_bound(q[arc], flow_ub[l])
@@ -1708,7 +1708,7 @@ function variable_slack_hp(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, rep
     phps = var(pm, nw)[:phps] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :heatpumps)], base_name="$(nw)_phps",
         lower_bound = 0.0,
-        upper_bound = 1e5
+        #upper_bound = 1e5
     )
     report && sol_component_value(pm, nw, :heatpumps, :phps, ids(pm, nw, :heatpumps), phps)
 end
@@ -1744,8 +1744,8 @@ end
 function variable_slack_HV_requirements_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     phvs = var(pm, nw)[:phvs] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :HV_requirements)], base_name="$(nw)_phvs",
-        lower_bound = -1e5,
-        upper_bound = 1e5
+        #lower_bound = -1e5,
+        #upper_bound = 1e5
     )
 
     report && sol_component_value(pm, nw, :HV_requirements, :phvs, ids(pm, nw, :HV_requirements), phvs)
