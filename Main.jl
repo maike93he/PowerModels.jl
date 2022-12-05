@@ -21,10 +21,8 @@ function optimize_edisgo()
   data_edisgo_mn = make_multinetwork(data_edisgo)
 
   if method == "soc" # Second order cone
-    ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => silence_moi, "sb" => "yes")#, "tol"=>1e-4)
-    #result = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt)
     # Set solver attributes
-    gurobi = optimizer_with_attributes(Gurobi.Optimizer, MOI.Silent() => silence_moi, "Presolve" => 1,  "QCPDual" =>1, "BarQCPConvTol" => 1e-4, "BarConvTol" => 1e-6, "BarHomogeneous"=> 1)#,"FeasibilityTol"=>1e-4, "NumericFocus"=> 1)
+    gurobi = optimizer_with_attributes(Gurobi.Optimizer, MOI.Silent() => silence_moi, "Presolve" => 1,  "QCPDual" =>1)#, "BarQCPConvTol" => 1e-4, "BarConvTol" => 1e-6, "BarHomogeneous"=> 1)#,"FeasibilityTol"=>1e-4, "NumericFocus"=> 1)
     # Solve SOC model
     result_soc, pm = solve_mn_opf_bf_flex(data_edisgo_mn, SOCBFPowerModelEdisgo, gurobi)
     # Check if SOC constraint is tight
@@ -32,6 +30,8 @@ function optimize_edisgo()
     open(joinpath(results_path, ding0_grid*"_SOC_tightness.json"), "w") do f
         write(f, JSON.json(exactness))
     end
+    ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => silence_moi, "sb" => "yes")#, "tol"=>1e-4)
+    result = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt)
     update_data!(data_edisgo_mn, result_soc["solution"])
     set_ac_bf_start_values!(data_edisgo_mn["nw"]["1"])
     result_nc_ws, pm = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt) # Print results?
