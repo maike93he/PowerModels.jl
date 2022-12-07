@@ -1647,7 +1647,7 @@ end
 "variables for modeling charging points, includes grid injection and internal variables"
 function variable_cp_power(pm::AbstractPowerModel; kwargs...)
     variable_cp_power_real(pm; kwargs...)  # Eq. (34) 
-    #variable_cp_power_imaginary(pm; kwargs...)  # TODO: to add
+    #variable_cp_power_imaginary(pm; kwargs...)
     variable_cp_energy(pm; kwargs...)  # Eq. (35)
 end
 

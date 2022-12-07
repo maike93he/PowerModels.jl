@@ -626,7 +626,7 @@ function objective_min_line_loading(pm::AbstractBFModelEdisgo)
         sum(sum(phvs[n][i]^2 * 1e5 for (i, flex) in ref(pm, n, :HV_requirements)) for n in nws) # minimize HV req. slack variables
         + sum(sum(phps[n][i] * 1e2 for (i, hp) in ref(pm, n, :heatpumps)) for n in nws) # minimize heat pump slack variables
         + sum(sum(ccm[n][b]*r[n][b]*1e5 for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
-        + sum(sum(pgs[n]) for n in nws) *1e5 
-        #+ sum(sum(p[n][(b,i,j)]/s_nom[n][b]*l[n][b]*c[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws)  # minimize line loading
+        #+ sum(sum(pgs[n]) for n in nws) *1e5 
+        + sum(sum(p[n][(b,i,j)]/s_nom[n][b]*l[n][b]*c[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws)  # minimize line loading
     )
 end
