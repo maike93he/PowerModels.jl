@@ -335,34 +335,39 @@ end
 
 function constraint_hp_operation(pm::AbstractBFModelEdisgo, i::Int, nw::Int=nw_id_default)
     hp = ref(pm, nw, :heatpumps, i)
-    phps = var(pm, nw, :phps, i)
     php = var(pm, nw, :php, i)
     phs = var(pm, nw, :phs, i)
 
-    JuMP.@constraint(pm.model, hp["cop"] * (php+phps) == hp["pd"] - phs) 
+    if (ref(pm, 1, :opt_version) == 2)|(ref(pm, 1, :opt_version) == 4)
+        phps = var(pm, nw, :phps, i)
+        JuMP.@constraint(pm.model, hp["cop"] * (php+phps) == hp["pd"] - phs) 
+    else
+        JuMP.@constraint(pm.model, hp["cop"] * php == hp["pd"] - phs) 
 end
 
 function constraint_HV_requirements(pm::AbstractBFModelEdisgo, i::Int, nw::Int=nw_id_default)
-    hv_req = ref(pm, nw, :HV_requirements, i)
-    phvs = var(pm, nw, :phvs, i)
-    #qhvs = var(pm, nw, :qhvs, i)
+    if (ref(pm, 1, :opt_version) == 2)|(ref(pm, 1, :opt_version) == 4)
+        hv_req = ref(pm, nw, :HV_requirements, i)
+        phvs = var(pm, nw, :phvs, i)
+        #qhvs = var(pm, nw, :qhvs, i)
 
-    if hv_req["flexibility"] == "dsm"
-        pflex = var(pm, nw, :pdsm)
-        #qflex = Dict(k => tan(acos(ref(pm, nw, :dsm, k, "pf")))*ref(pm, nw, :dsm, k, "sign") *pflex[k] for k in keys(ref(pm, nw, :dsm)))
-    elseif hv_req["flexibility"] == "curt"
-        pflex = var(pm, nw, :pgc)
-        #qflex =Dict(k => tan(acos(ref(pm, nw, :gen_nd, k, "pf")))*ref(pm, nw, :gen_nd, k, "sign") *pflex[k] for k in keys(ref(pm, nw, :gen_nd)))
-    elseif hv_req["flexibility"] == "storage"
-        pflex = var(pm, nw, :ps)
-        #qflex =Dict(k => tan(acos(ref(pm, nw, :storage, k, "pf")))*ref(pm, nw, :storage, k, "sign") *pflex[k] for k in keys(ref(pm, nw, :storage)))
-    elseif hv_req["flexibility"] == "hp"
-        pflex = var(pm, nw, :php)
-        #qflex =Dict(k => tan(acos(ref(pm, nw, :heatpumps, k, "pf")))*ref(pm, nw, :heatpumps, k, "sign") *pflex[k] for k in keys(ref(pm, nw, :heatpumps)))
-    elseif hv_req["flexibility"] == "cp"
-        pflex = var(pm, nw, :pcp)
-        #qflex =Dict(k => tan(acos(ref(pm, nw, :electromobility, k, "pf")))*ref(pm, nw, :electromobility, k, "sign") * pflex[k] for k in keys(ref(pm, nw, :electromobility)))
-    end
-    JuMP.@constraint(pm.model, sum(pflex) + phvs == hv_req["P"])  
-    #JuMP.@constraint(pm.model, sum(qflex[i] for i in keys(qflex)) + qhvs == hv_req["Q"])    
+        if hv_req["flexibility"] == "dsm"
+            pflex = var(pm, nw, :pdsm)
+            #qflex = Dict(k => tan(acos(ref(pm, nw, :dsm, k, "pf")))*ref(pm, nw, :dsm, k, "sign") *pflex[k] for k in keys(ref(pm, nw, :dsm)))
+        elseif hv_req["flexibility"] == "curt"
+            pflex = var(pm, nw, :pgc)
+            #qflex =Dict(k => tan(acos(ref(pm, nw, :gen_nd, k, "pf")))*ref(pm, nw, :gen_nd, k, "sign") *pflex[k] for k in keys(ref(pm, nw, :gen_nd)))
+        elseif hv_req["flexibility"] == "storage"
+            pflex = var(pm, nw, :ps)
+            #qflex =Dict(k => tan(acos(ref(pm, nw, :storage, k, "pf")))*ref(pm, nw, :storage, k, "sign") *pflex[k] for k in keys(ref(pm, nw, :storage)))
+        elseif hv_req["flexibility"] == "hp"
+            pflex = var(pm, nw, :php)
+            #qflex =Dict(k => tan(acos(ref(pm, nw, :heatpumps, k, "pf")))*ref(pm, nw, :heatpumps, k, "sign") *pflex[k] for k in keys(ref(pm, nw, :heatpumps)))
+        elseif hv_req["flexibility"] == "cp"
+            pflex = var(pm, nw, :pcp)
+            #qflex =Dict(k => tan(acos(ref(pm, nw, :electromobility, k, "pf")))*ref(pm, nw, :electromobility, k, "sign") * pflex[k] for k in keys(ref(pm, nw, :electromobility)))
+        end
+        JuMP.@constraint(pm.model, sum(pflex) + phvs == hv_req["P"])  
+        #JuMP.@constraint(pm.model, sum(qflex[i] for i in keys(qflex)) + qhvs == hv_req["Q"])
+    end    
 end

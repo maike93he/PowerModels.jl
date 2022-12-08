@@ -111,29 +111,26 @@ end
 function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
     for (n, network) in nws(pm)
         # VARIABLES
-        if (ref(pm, 1, :opt_version) == 1)|(ref(pm, 1, :opt_version) == 3)
-            variable_branch_power_radial(pm, nw=n, bounded=false)
-            variable_branch_current(pm, nw=n, bounded=false)
-        elseif (ref(pm, 1, :opt_version) == 2)
+        if ref(pm, 1, :opt_version) in(1, 2, 3, 4)
             variable_branch_power_radial(pm, nw=n)  # Eq. ():  branch power <= rate_a (s_nom)
             variable_branch_current(pm, nw=n)  # Eq. ()
-            # variable_slack_grid_restrictions(pm, nw=n)  # TODO
-        # else: throw error: no opt_version nr. $(version) implemented
+            variable_bus_voltage(pm, nw=n)  # Eq. (29)
+            variable_gen_power_curt(pm, nw=n)  #  Eq. (20)
+            variable_battery_storage_power(pm, nw=n)  # Eq. (21), (22)
+            variable_heat_storage(pm, nw=n)  # Eq. (22)
+            variable_cp_power(pm, nw=n)  #  Eq. (23), (24)
+            variable_heat_pump_power(pm, nw=n)  # Eq. (25)
+            variable_dsm_storage_power(pm, nw=n)  # Eq. (26), (27)
+            variable_slack_gen(pm, nw=n)  # Eq. (28)
+            variable_slack_grid_restrictions(pm, nw=n)  # TODO
+            variable_slack_HV_requirements(pm, nw=n)
+        else
+            throw(ArgumentError("OPF version $(ref(pm, 1, :opt_version)) is not implemented! Choose between version 1 to 4."))
         end
-        variable_bus_voltage(pm, nw=n)  # Eq. (29)
-        variable_gen_power_curt(pm, nw=n)  #  Eq. (20)
-        variable_battery_storage_power(pm, nw=n)  # Eq. (21), (22)
-        variable_heat_storage(pm, nw=n)  # Eq. (22)
-        variable_cp_power(pm, nw=n)  #  Eq. (23), (24)
-        variable_heat_pump_power(pm, nw=n)  # Eq. (25)
-        variable_dsm_storage_power(pm, nw=n)  # Eq. (26), (27)
-        variable_slack_gen(pm, nw=n)  # Eq. (28)
-        variable_slack_HV_requirements(pm, nw=n)
-        variable_slack_hp(pm, nw=n)
-
+        
         # CONSTRAINTS
         for i in ids(pm, :bus, nw=n)  
-            constraint_power_balance_bf(pm, i, nw=n) # Eq. (2)-(5)
+            constraint_power_balance_bf(pm, i, nw=n) # Eq. (2)-(5)   ###### TODO
         end
         for i in ids(pm, :branch, nw=n)
             constraint_voltage_magnitude_difference_radial(pm, i, nw=n) # Eq. (6)
@@ -148,6 +145,7 @@ function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
 
     end
 
+    # CONSTRAINTS
     network_ids = sort(collect(nw_ids(pm)))
     for kind in ["storage", "heat_storage", "dsm"]
         n_1 = network_ids[1]
@@ -175,5 +173,14 @@ function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
         n_1 = n_2
     end
 
-    objective_min_line_loading(pm)  # Eq. (1)
+    # OBJECTIVE FUNCTION
+    if (ref(pm, 1, :opt_version) == 1)
+        objective_min_line_loading(pm)  # Eq. (1)    ###### TODO
+    elseif (ref(pm, 1, :opt_version) == 2)
+        print("TODO")
+    elseif (ref(pm, 1, :opt_version) == 3)
+        print("TODO")
+    elseif (ref(pm, 1, :opt_version) == 4)
+        print("TODO")
+    end
 end

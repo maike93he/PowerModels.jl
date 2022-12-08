@@ -529,6 +529,10 @@ function variable_branch_power_real_radial(pm::AbstractPowerModel; nw::Int=nw_id
         start = comp_start_value(ref(pm, nw, :branch, l), "p_start")
     )
 
+    if (ref(pm, 1, :opt_version) == 1)|(ref(pm, 1, :opt_version) == 3)
+        bounded = false
+    end
+
     if bounded
         flow_lb, flow_ub = ref_calc_branch_flow_bounds(ref(pm, nw, :branch), ref(pm, nw, :bus))
 
@@ -565,6 +569,10 @@ function variable_branch_power_imaginary_radial(pm::AbstractPowerModel; nw::Int=
         upper_bound = 1e5,
         start = comp_start_value(ref(pm, nw, :branch, l), "q_start")
     )
+
+    if (ref(pm, 1, :opt_version) == 1)|(ref(pm, 1, :opt_version) == 3)
+        bounded = false
+    end
 
     if bounded
         flow_lb, flow_ub = ref_calc_branch_flow_bounds(ref(pm, nw, :branch), ref(pm, nw, :bus))
@@ -1703,6 +1711,15 @@ function variable_cp_energy(pm::AbstractPowerModel; nw::Int=nw_id_default, bound
     report && sol_component_value(pm, nw, :electromobility, :cpe, ids(pm, nw, :electromobility), cpe)
 end
 
+"slack variables for grid restrictions"
+function variable_slack_grid_restrictions(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
+    if (ref(pm, 1, :opt_version) == 2)|(ref(pm, 1, :opt_version) == 4)
+        variable_slack_hp(pm, kwargs...)
+        #variable_slack_load(pm, kwargs...) TODO
+        #variable_slack_gen(pm, kwargs...) TODO
+    end
+end
+
 "heat pump slack variable"
 function variable_slack_hp(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
     phps = var(pm, nw)[:phps] = JuMP.@variable(pm.model,
@@ -1736,8 +1753,10 @@ end
 
 "slack variables for HV requirement constraints"
 function variable_slack_HV_requirements(pm::AbstractPowerModel; kwargs...)
-    variable_slack_HV_requirements_real(pm; kwargs...)  
-    #variable_slack_HV_requirements_imaginary(pm; kwargs...)  
+    if (ref(pm, 1, :opt_version) == 1)|(ref(pm, 1, :opt_version) == 2)
+        variable_slack_HV_requirements_real(pm; kwargs...)  
+        #variable_slack_HV_requirements_imaginary(pm; kwargs...)  
+    end
 end
 
 ""
