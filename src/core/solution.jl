@@ -55,11 +55,15 @@ function check_SOC_equality(result, data_edisgo)
     branches = keys(data_edisgo["branch"])
     branch_f_bus = Dict(k => string(data_edisgo["branch"][k]["f_bus"]) for k in branches)
     soc_eq_dict = Dict()
+    soc_tight = true
     for t in timesteps
         eq_res = Dict(b => (result["solution"]["nw"][t]["branch"][b]["pf"]^2 
         + result["solution"]["nw"][t]["branch"][b]["qf"]^2 
         -result["solution"]["nw"][t]["branch"][b]["ccm"]*result["solution"]["nw"][t]["bus"][branch_f_bus[b]]["w"]) for b in branches)
         soc_eq_dict[t]= filter(((k,v),) ->  v <-1e-2, eq_res)
+        if length(keys(soc_eq_dict[t])) > 0
+            soc_tight = false
+        end
     end
-    return soc_eq_dict
+    return soc_tight, soc_eq_dict
 end

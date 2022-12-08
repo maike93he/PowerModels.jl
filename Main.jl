@@ -15,6 +15,11 @@ results_path = ARGS[2]
 method = ARGS[3]
 silence_moi = ARGS[4].=="True"
 tol = parse(Float64, ARGS[5])
+warm_start = false # ARGS[6].=="True"
+
+# Set solver attributes
+const ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => silence_moi, "sb" => "yes", "tol"=>tol)
+const gurobi = optimizer_with_attributes(Gurobi.Optimizer, MOI.Silent() => silence_moi, "Presolve" => 1, "NumericFocus"=> 1, "BarQCPConvTol" => tol, "BarConvTol" => tol, "BarHomogeneous"=> 1, "OptimalityTol" => tol, "FeasibilityTol"=>tol)
 
 function optimize_edisgo()                                        
   # read in data and create multinetwork
@@ -22,35 +27,39 @@ function optimize_edisgo()
   data_edisgo_mn = make_multinetwork(data_edisgo)
 
   if method == "soc" # Second order cone
-    # ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => silence_moi, "sb" => "yes", "tol"=>tol)
-    #result = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt)
-    # Set solver attributes
-    gurobi = optimizer_with_attributes(Gurobi.Optimizer, MOI.Silent() => silence_moi, "Presolve" => 1, "NumericFocus"=> 1, "BarQCPConvTol" => tol, "BarConvTol" => tol, "BarHomogeneous"=> 1, "OptimalityTol" => tol, "FeasibilityTol"=>tol)
     # Solve SOC model
+    println("Starting convex SOC AC-OPF with Gurobi.")
     result_soc, pm = solve_mn_opf_bf_flex(data_edisgo_mn, SOCBFPowerModelEdisgo, gurobi)
-#     try
-#         JuMP.compute_conflict!(pm.model)
-#
-#         if MOI.get(pm.model, MOI.ConflictStatus()) == MOI.CONFLICT_FOUND
-#           iis_model, _ = copy_conflict(pm.model)
-#           print(iis_model)
-#         end
-#     catch e
-#     end
-    # Check if SOC constraint is tight
-    exactness = check_SOC_equality(result_soc, data_edisgo)
-    open(joinpath(results_path, ding0_grid*"_SOC_tightness.json"), "w") do f
-        write(f, JSON.json(exactness))
-    end
-    update_data!(data_edisgo_mn, result_soc["solution"])
-    # TODO: if SOC is tight -> solution nehmen/warm start else cold start
-    # set_ac_bf_start_values!(data_edisgo_mn["nw"]["1"])
-    # result_nc_ws, pm = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt)
-    # update_data!(data_edisgo_mn, result_soc["solution"])
+    # Find violating constraint if model is infeasible
+    if result_soc["termination_status"] == MOI.INFEASIBLE
+      JuMP.compute_conflict!(pm.model)
+  
+      if MOI.get(pm.model, MOI.ConflictStatus()) == MOI.CONFLICT_FOUND
+        iis_model, _ = copy_conflict(pm.model)
+        print(iis_model)
+      end
+    else
+      # Check if SOC constraint is tight
+      soc_tight, soc_dict = check_SOC_equality(result_soc, data_edisgo)
+      # Save SOC violations if SOC is not tight
+      if !soc_tight
+        open(joinpath(results_path, ding0_grid*"_SOC_tightness.json"), "w") do f
+            write(f, JSON.json(soc_dict))
+        end
+      end
+      update_data!(data_edisgo_mn, result_soc["solution"])
+      if soc_tight & warm_start
+        println("Starting warm-start non-convex AC-OPF with IPOPT.")
+        set_ac_bf_start_values!(data_edisgo_mn["nw"]["1"])
+        result_nc_ws, pm = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt)
+        update_data!(data_edisgo_mn, result_nc_ws["solution"])
+      end
+    end 
   elseif method == "nc" # Non-Convex
     # Set solver attributes
     ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => silence_moi, "sb" => "yes", "tol"=>tol)
     # Solve NC model
+    println("Starting cold-start non-convex AC-OPF with IPOPT.")
     result, pm = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt)
     update_data!(data_edisgo_mn, result["solution"])
   end
