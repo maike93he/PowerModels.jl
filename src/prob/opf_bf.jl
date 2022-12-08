@@ -113,7 +113,11 @@ function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
         # VARIABLES
         if ref(pm, 1, :opt_version) in(1, 2, 3, 4)
             variable_branch_power_radial(pm, nw=n)  # Eq. ():  branch power <= rate_a (s_nom)
-            variable_branch_current(pm, nw=n)  # Eq. ()
+            if ref(pm, 1, :opt_version) in(1, 3)
+                variable_branch_current(pm, nw=n, bounded=false)
+            else
+                variable_branch_current(pm, nw=n)  # Eq. ()
+            end
             variable_bus_voltage(pm, nw=n)  # Eq. (29)
             variable_gen_power_curt(pm, nw=n)  #  Eq. (20)
             variable_battery_storage_power(pm, nw=n)  # Eq. (21), (22)
@@ -122,7 +126,7 @@ function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
             variable_heat_pump_power(pm, nw=n)  # Eq. (25)
             variable_dsm_storage_power(pm, nw=n)  # Eq. (26), (27)
             variable_slack_gen(pm, nw=n)  # Eq. (28)
-            variable_slack_grid_restrictions(pm, nw=n)  # TODO
+            variable_slack_grid_restrictions(pm, nw=n)
             variable_slack_HV_requirements(pm, nw=n)
         else
             throw(ArgumentError("OPF version $(ref(pm, 1, :opt_version)) is not implemented! Choose between version 1 to 4."))
@@ -174,13 +178,17 @@ function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
     end
 
     # OBJECTIVE FUNCTION
-    if (ref(pm, 1, :opt_version) == 1)
-        objective_min_line_loading(pm)  # Eq. (1)    ###### TODO
-    elseif (ref(pm, 1, :opt_version) == 2)
-        print("TODO")
-    elseif (ref(pm, 1, :opt_version) == 3)
-        print("TODO")
-    elseif (ref(pm, 1, :opt_version) == 4)
-        print("TODO")
+    if ref(pm, 1, :opt_version)in(1,3)
+        objective_min_losses(pm)  # Eq. (1)
+        if (ref(pm, 1, :opt_version) == 1)
+            #objective_min_hv_slacks(pm)
+            # Set multiple objectives
+            # https://www.gurobi.com/documentation/9.1/refman/specifying_multiple_object.html
+        end
+    elseif ref(pm, 1, :opt_version)in(2,4)
+        objective_min_slacks(pm)  # Eq. (1)
+        if (ref(pm, 1, :opt_version) == 2)
+            #objective_min_hv_slacks(pm)
+        end
     end
 end

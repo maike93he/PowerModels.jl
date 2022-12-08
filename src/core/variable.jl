@@ -529,7 +529,7 @@ function variable_branch_power_real_radial(pm::AbstractPowerModel; nw::Int=nw_id
         start = comp_start_value(ref(pm, nw, :branch, l), "p_start")
     )
 
-    if (ref(pm, 1, :opt_version) == 1)|(ref(pm, 1, :opt_version) == 3)
+    if ref(pm, 1, :opt_version) in(1,3)
         bounded = false
     end
 
@@ -570,7 +570,7 @@ function variable_branch_power_imaginary_radial(pm::AbstractPowerModel; nw::Int=
         start = comp_start_value(ref(pm, nw, :branch, l), "q_start")
     )
 
-    if (ref(pm, 1, :opt_version) == 1)|(ref(pm, 1, :opt_version) == 3)
+    if ref(pm, 1, :opt_version)in(1,3)
         bounded = false
     end
 
@@ -1712,22 +1712,59 @@ function variable_cp_energy(pm::AbstractPowerModel; nw::Int=nw_id_default, bound
 end
 
 "slack variables for grid restrictions"
-function variable_slack_grid_restrictions(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
-    if (ref(pm, 1, :opt_version) == 2)|(ref(pm, 1, :opt_version) == 4)
-        variable_slack_hp(pm, kwargs...)
-        #variable_slack_load(pm, kwargs...) TODO
-        #variable_slack_gen(pm, kwargs...) TODO
+function variable_slack_grid_restrictions(pm::AbstractBFModelEdisgo; kwargs...)
+    if ref(pm, 1, :opt_version)in(2,4)
+        variable_hp_slack(pm; kwargs...)
+        variable_load_slack(pm; kwargs...)
+        variable_gen_slack(pm; kwargs...)
     end
 end
 
 "heat pump slack variable"
-function variable_slack_hp(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
+function variable_hp_slack(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     phps = var(pm, nw)[:phps] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :heatpumps)], base_name="$(nw)_phps",
-        lower_bound = 0.0,
-        upper_bound = 1e5
+        lower_bound = 0.0
     )
+    if bounded
+        for (i, hp) in ref(pm, nw, :heatpumps)
+            JuMP.set_upper_bound(phps[i], hp["pd"]/hp["cop"])
+        end
+    end
+
     report && sol_component_value(pm, nw, :heatpumps, :phps, ids(pm, nw, :heatpumps), phps)
+end
+
+"load slack variable"
+function variable_load_slack(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    pds = var(pm, nw)[:pds] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :load)], base_name="$(nw)_pds",
+        lower_bound = 0.0,
+    )
+
+    if bounded
+        for (i, load) in ref(pm, nw, :load)
+            JuMP.set_upper_bound(pds[i], load["pd"])
+        end
+    end
+
+    report && sol_component_value(pm, nw, :load, :pds, ids(pm, nw, :load), pds)
+end
+
+"gen slack variable"
+function variable_gen_slack(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    pgens = var(pm, nw)[:pgens] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :gen)], base_name="$(nw)_pgens",
+        lower_bound = 0.0,
+    )
+
+    if bounded
+        for (i, gen) in ref(pm, nw, :gen)
+            JuMP.set_upper_bound(pgens[i], gen["pg"])
+        end
+    end
+
+    report && sol_component_value(pm, nw, :gen, :pgens, ids(pm, nw, :gen), pgens)
 end
 
 "slack generator variables"
@@ -1753,7 +1790,7 @@ end
 
 "slack variables for HV requirement constraints"
 function variable_slack_HV_requirements(pm::AbstractPowerModel; kwargs...)
-    if (ref(pm, 1, :opt_version) == 1)|(ref(pm, 1, :opt_version) == 2)
+    if ref(pm, 1, :opt_version)in(1,2)
         variable_slack_HV_requirements_real(pm; kwargs...)  
         #variable_slack_HV_requirements_imaginary(pm; kwargs...)  
     end
