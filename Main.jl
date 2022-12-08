@@ -31,7 +31,7 @@ function optimize_edisgo()
     println("Starting convex SOC AC-OPF with Gurobi.")
     result_soc, pm = solve_mn_opf_bf_flex(data_edisgo_mn, SOCBFPowerModelEdisgo, gurobi)
     # Find violating constraint if model is infeasible
-    if result_soc["termination_status"] == MOI.INFEASIBLE
+    if result_soc["termination_status"] != MOI.OPTIMAL
       JuMP.compute_conflict!(pm.model)
   
       if MOI.get(pm.model, MOI.ConflictStatus()) == MOI.CONFLICT_FOUND

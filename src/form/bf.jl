@@ -264,7 +264,7 @@ function constraint_power_balance(pm::AbstractBFModelEdisgo, n::Int, i, bus_gens
     pcp  = get(var(pm, n),  :pcp, Dict()); _check_var_keys(pcp, bus_cps, "active power", "electromobility")
     #qcp  = get(var(pm, n),  :qcp, Dict()); _check_var_keys(qcp, bus_cps, "reactive power", "electromobility")
 
-    if ref(pm, 1, :opt_version) in(3, 4)
+    if ref(pm, 1, :opt_version) in(2, 4)
         pgens  = get(var(pm, n),  :pgens, Dict()); _check_var_keys(pgens, bus_gens, "active power", "curtailment")
         pds  = get(var(pm, n),  :pds, Dict()); _check_var_keys(pds, bus_loads, "active power", "load")
 

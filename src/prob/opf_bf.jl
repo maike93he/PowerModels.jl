@@ -178,15 +178,15 @@ function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
     end
 
     # OBJECTIVE FUNCTION
-    if ref(pm, 1, :opt_version)in(1,3)
+    if ref(pm, 1, :opt_version) in(1,3)
         objective_min_losses(pm)  # Eq. (1)
         if (ref(pm, 1, :opt_version) == 1)
             #objective_min_hv_slacks(pm)
             # Set multiple objectives
             # https://www.gurobi.com/documentation/9.1/refman/specifying_multiple_object.html
         end
-    elseif ref(pm, 1, :opt_version)in(2,4)
-        objective_min_slacks(pm)  # Eq. (1)
+    elseif ref(pm, 1, :opt_version) in(2,4)
+        objective_min_losses_slacks(pm)  # Eq. (1)
         if (ref(pm, 1, :opt_version) == 2)
             #objective_min_hv_slacks(pm)
         end

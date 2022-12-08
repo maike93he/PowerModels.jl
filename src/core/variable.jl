@@ -570,7 +570,7 @@ function variable_branch_power_imaginary_radial(pm::AbstractPowerModel; nw::Int=
         start = comp_start_value(ref(pm, nw, :branch, l), "q_start")
     )
 
-    if ref(pm, 1, :opt_version)in(1,3)
+    if ref(pm, 1, :opt_version) in(1,3)
         bounded = false
     end
 
@@ -1713,7 +1713,7 @@ end
 
 "slack variables for grid restrictions"
 function variable_slack_grid_restrictions(pm::AbstractBFModelEdisgo; kwargs...)
-    if ref(pm, 1, :opt_version)in(2,4)
+    if ref(pm, 1, :opt_version) in(2,4)
         variable_hp_slack(pm; kwargs...)
         variable_load_slack(pm; kwargs...)
         variable_gen_slack(pm; kwargs...)
@@ -1790,7 +1790,7 @@ end
 
 "slack variables for HV requirement constraints"
 function variable_slack_HV_requirements(pm::AbstractPowerModel; kwargs...)
-    if ref(pm, 1, :opt_version)in(1,2)
+    if ref(pm, 1, :opt_version) in(1,2)
         variable_slack_HV_requirements_real(pm; kwargs...)  
         #variable_slack_HV_requirements_imaginary(pm; kwargs...)  
     end

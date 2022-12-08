@@ -338,7 +338,7 @@ function constraint_hp_operation(pm::AbstractBFModelEdisgo, i::Int, nw::Int=nw_i
     php = var(pm, nw, :php, i)
     phs = var(pm, nw, :phs, i)
 
-    if ref(pm, 1, :opt_version)in(2,4)
+    if ref(pm, 1, :opt_version) in(2,4)
         phps = var(pm, nw, :phps, i)
         JuMP.@constraint(pm.model, hp["cop"] * (php+phps) == hp["pd"] - phs) 
     else
@@ -347,7 +347,7 @@ function constraint_hp_operation(pm::AbstractBFModelEdisgo, i::Int, nw::Int=nw_i
 end
 
 function constraint_HV_requirements(pm::AbstractBFModelEdisgo, i::Int, nw::Int=nw_id_default)
-    if ref(pm, 1, :opt_version)in(1,2)
+    if ref(pm, 1, :opt_version) in(1,2)
         hv_req = ref(pm, nw, :HV_requirements, i)
         phvs = var(pm, nw, :phvs, i)
         #qhvs = var(pm, nw, :qhvs, i)

@@ -641,15 +641,18 @@ function objective_min_losses(pm::AbstractBFModelEdisgo)
     )
 end
 
-function objective_min_slacks(pm::AbstractBFModelEdisgo)
+function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
     nws = nw_ids(pm)
+    ccm = Dict(n => var(pm, n, :ccm) for n in nws)
+    r = Dict(n => Dict(i => get(branch, "br_r", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)
     pgc = Dict(n => var(pm, n, :pgc) for n in nws)
     phps = Dict(n => var(pm, n, :phps) for n in nws)
     pgens = Dict(n => var(pm, n, :pgens) for n in nws)
     pds = Dict(n => var(pm, n, :pds) for n in nws)
 
     return JuMP.@objective(pm.model, Min,
-        sum(sum(pgc[n]) for n in nws) # minimize non-dispatchable curtailment
+        sum(sum(ccm[n][b]*r[n][b]*1e3 for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
+        + sum(sum(pgc[n]) for n in nws) # minimize non-dispatchable curtailment
         + sum(sum(pgens[n]) for n in nws) # minimize dispatchable curtailment
         + sum(sum(phps[n]) for n in nws) # minimize heatpump slack variables
         + sum(sum(pds[n]) for n in nws) # minimize load shedding
