@@ -122,9 +122,16 @@ function variable_bus_voltage_magnitude_sqr(pm::AbstractPowerModel; nw::Int=nw_i
     )
 
     if bounded
-        for (i, bus) in ref(pm, nw, :bus)
-            JuMP.set_lower_bound(w[i], bus["vmin"]^2)
-            JuMP.set_upper_bound(w[i], bus["vmax"]^2)
+        if ref(pm, 1, :opt_version) in(1, 3)
+            for (i, bus) in ref(pm, nw, :bus)
+                JuMP.set_lower_bound(w[i], bus["vmin"]^2 - 0.05)
+                JuMP.set_upper_bound(w[i], bus["vmax"]^2 + 0.05)
+            end
+        else
+            for (i, bus) in ref(pm, nw, :bus)
+                JuMP.set_lower_bound(w[i], bus["vmin"]^2)
+                JuMP.set_upper_bound(w[i], bus["vmax"]^2)
+            end
         end
     end
 
