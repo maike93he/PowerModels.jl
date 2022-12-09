@@ -639,7 +639,7 @@ function objective_min_losses(pm::AbstractBFModelEdisgo)
 
     return JuMP.@objective(pm.model, Min,
         sum(sum(ccm[n][b]*r[n][b]*1e3 for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
-        sum(sum(w[n]) for n in nws) # minimize bus voltages 
+        + sum(sum(w[n]) for n in nws) # minimize bus voltages 
     )
 end
 
