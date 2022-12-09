@@ -56,8 +56,6 @@ function optimize_edisgo()
       end
     end 
   elseif method == "nc" # Non-Convex
-    # Set solver attributes
-    ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => silence_moi, "sb" => "yes", "tol"=>tol)
     # Solve NC model
     println("Starting cold-start non-convex AC-OPF with IPOPT.")
     result, pm = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt)
