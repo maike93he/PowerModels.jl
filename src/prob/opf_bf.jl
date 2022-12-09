@@ -115,11 +115,10 @@ function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
             variable_branch_power_radial(pm, nw=n)  # Eq. ():  branch power <= rate_a (s_nom)
             if ref(pm, 1, :opt_version) in(1, 3)
                 variable_branch_current(pm, nw=n, bounded=false)
-                variable_bus_voltage(pm, nw=n, bounded=false)  # Eq. (29)
             else
                 variable_branch_current(pm, nw=n)  # Eq. ()
-                variable_bus_voltage(pm, nw=n)  # Eq. (29)
             end
+            variable_bus_voltage(pm, nw=n)  # Eq. (29)
             variable_gen_power_curt(pm, nw=n)  #  Eq. (20)
             variable_battery_storage_power(pm, nw=n)  # Eq. (21), (22)
             variable_heat_storage(pm, nw=n)  # Eq. (22)

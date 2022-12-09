@@ -635,11 +635,9 @@ function objective_min_losses(pm::AbstractBFModelEdisgo)
     nws = nw_ids(pm)
     ccm = Dict(n => var(pm, n, :ccm) for n in nws)
     r = Dict(n => Dict(i => get(branch, "br_r", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)
-    w = Dict(n => var(pm, n, :w) for n in nws)
 
     return JuMP.@objective(pm.model, Min,
         sum(sum(ccm[n][b]*r[n][b]*1e3 for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
-        + sum(sum(w[n]) for n in nws) # minimize bus voltages 
     )
 end
 
