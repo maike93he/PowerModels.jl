@@ -755,11 +755,7 @@ function set_ac_bf_start_values!(network::Dict{String,<:Any})
         bus["w_start"] = bus["w"]
     end
 
-    # for (i,branch) in network["branch"]
-    #     branch["ccm_start"] = branch["ccm"]
-    # end
-
-    for (i,gen) in network["gen_nd"] # TODO: check start value einfügen in Variablenerzeugung
+    for (i,gen) in network["gen_nd"]
         gen["pgc_start"] = gen["pgc"]
     end
 

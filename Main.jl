@@ -15,7 +15,7 @@ results_path = ARGS[2]
 method = ARGS[3]
 silence_moi = ARGS[4].=="True"
 tol = parse(Float64, ARGS[5])
-warm_start = false # ARGS[6].=="True"
+warm_start = ARGS[6].=="True"
 
 # Set solver attributes
 const ipopt = optimizer_with_attributes(Ipopt.Optimizer, MOI.Silent() => silence_moi, "sb" => "yes", "tol"=>tol)
