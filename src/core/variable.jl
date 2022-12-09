@@ -117,7 +117,7 @@ end
 function variable_bus_voltage_magnitude_sqr(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     w = var(pm, nw)[:w] = JuMP.@variable(pm.model,
         [i in ids(pm, nw, :bus)], base_name="$(nw)_w",
-        lower_bound = 0.0,
+        lower_bound = 0.81,
         start = comp_start_value(ref(pm, nw, :bus, i), "w_start", 1.001)
     )
 
