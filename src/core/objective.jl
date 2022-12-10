@@ -635,10 +635,15 @@ function objective_min_losses(pm::AbstractBFModelEdisgo)
     nws = nw_ids(pm)
     ccm = Dict(n => var(pm, n, :ccm) for n in nws)
     r = Dict(n => Dict(i => get(branch, "br_r", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)
-    w = Dict(n => var(pm, n, :w) for n in nws)
+    #w = Dict(n => var(pm, n, :w) for n in nws)
+    p = Dict(n => var(pm, n, :p) for n in nws)
+    l = Dict(n => Dict(i => get(branch, "length", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
+    c = Dict(n => Dict(i => get(branch, "cost", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
+    s_nom = Dict(n => Dict(i => get(branch, "rate_a", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)# p_max?
 
     return JuMP.@objective(pm.model, Min,
         sum(sum(ccm[n][b]*r[n][b]*1e6 for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
+        + sum(sum(p[n][(b,i,j)]/s_nom[n][b]*l[n][b]*c[n][b]*1e3 for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws)  # minimize line loading
         #+ sum(sum(w[n]) for n in nws) # minimize voltage magnitude overshots
     )
 end
