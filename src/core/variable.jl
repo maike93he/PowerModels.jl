@@ -1058,6 +1058,17 @@ function variable_battery_storage_power(pm::AbstractPowerModel; kwargs...)
     variable_storage_energy(pm; kwargs...)  # Eq. (22)
 end
 
+function variable_battery_storage_power_mi(pm::AbstractPowerModel; kwargs...)
+    #variable_battery_storage_power_real(pm; kwargs...)  # Eq. (21)
+    #variable_battery_storage_power_imaginary(pm; kwargs...) # Eq. (21) 
+    variable_storage_charge(pm; kwargs...)
+    variable_storage_discharge(pm; kwargs...)
+    variable_storage_complementary_indicator(pm; kwargs...) ##### Option: relax!
+    # variable_storage_current(pm; kwargs...) ?
+    # variable_storage_energy(pm; kwargs...) ?
+    variable_storage_energy(pm; kwargs...)  # Eq. (22)
+end
+
 ""
 function variable_battery_storage_power_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     ps = var(pm, nw)[:ps] = JuMP.@variable(pm.model,

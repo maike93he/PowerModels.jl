@@ -212,7 +212,7 @@ end
 
 ""
 
-function constraint_storage_state_initial(pm::AbstractBFModelEdisgo, n::Int, i::Int, energy, charge_eff, discharge_eff, time_elapsed, kind)
+function constraint_store_state_initial(pm::AbstractBFModelEdisgo, n::Int, i::Int, energy, charge_eff, discharge_eff, time_elapsed, kind, p_loss)
     if kind == "storage"
         ps_1 = var(pm, n, :ps, i)
         se = var(pm, n, :se, i)
@@ -220,7 +220,7 @@ function constraint_storage_state_initial(pm::AbstractBFModelEdisgo, n::Int, i::
     elseif kind == "heat_storage"
         phs_1 = var(pm, n, :phs, i)
         hse = var(pm, n, :hse, i)
-        JuMP.@constraint(pm.model, hse - energy == - time_elapsed * phs_1)
+        JuMP.@constraint(pm.model, hse - energy * (1 - p_loss) == - time_elapsed * phs_1)
     elseif kind == "dsm"
         dsme = var(pm, n, :dsme, i)
         pdsm_1 = var(pm, n, :pdsm, i)
@@ -240,7 +240,7 @@ end
 
 ""
 
-function constraint_storage_state(pm::AbstractBFModelEdisgo, n_1::Int, n_2::Int, i::Int, charge_eff, discharge_eff, time_elapsed, kind)
+function constraint_store_state(pm::AbstractBFModelEdisgo, n_1::Int, n_2::Int, i::Int, charge_eff, discharge_eff, time_elapsed, kind, p_loss)
     if kind == "storage"
         ps_2 = var(pm, n_2, :ps, i)
         se_2 = var(pm, n_2, :se, i)
@@ -252,7 +252,7 @@ function constraint_storage_state(pm::AbstractBFModelEdisgo, n_1::Int, n_2::Int,
         hse_2 = var(pm, n_2, :hse, i)
         hse_1 = var(pm, n_1, :hse, i)
 
-        JuMP.@constraint(pm.model, hse_2 - hse_1 == - time_elapsed*phs_2)
+        JuMP.@constraint(pm.model, hse_2 - hse_1 * (1 - p_loss) == - time_elapsed*phs_2)
     elseif kind == "dsm"
         pdsm_2 = var(pm, n_2, :pdsm, i)
         dsme_2 = var(pm, n_2, :dsme, i)

@@ -120,7 +120,8 @@ function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
             end
             variable_bus_voltage(pm, nw=n)  # Eq. (29)
             variable_gen_power_curt(pm, nw=n)  #  Eq. (20)
-            variable_battery_storage_power(pm, nw=n)  # Eq. (21), (22)
+            #variable_battery_storage_power(pm, nw=n)  # Eq. (21), (22) # in POWER BALANCE charge/discharge variablen ersetzen
+            variable_battery_storage_power_mi(pm, nw=n)  # Eq. (21), (22)
             variable_heat_storage(pm, nw=n)  # Eq. (22)
             variable_cp_power(pm, nw=n)  #  Eq. (23), (24)
             variable_heat_pump_power(pm, nw=n)  # Eq. (25)
@@ -143,6 +144,10 @@ function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
         for i in ids(pm, :heatpumps, nw=n)  
             constraint_hp_operation(pm, i, n) # Eq. (14)
         end
+        ########## storage complementarity nur für eff <1
+        for i in ids(pm, :storage, nw=n)
+            constraint_storage_complementarity_mi(pm, i, nw=n)
+        end
         for i in ids(pm, :HV_requirements, nw=n)  
             constraint_HV_requirements(pm, i, n) # Eq. (15)-(19)
         end
@@ -153,15 +158,37 @@ function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
     network_ids = sort(collect(nw_ids(pm)))
     for kind in ["storage", "heat_storage", "dsm"]
         n_1 = network_ids[1]
-        for i in ids(pm, Symbol(kind), nw=n_1)
-            constraint_storage_state(pm, i, nw=n_1, kind=kind)  # Eq. (8), (10)
-        end
-
-        for n_2 in network_ids[2:end]
-            for i in ids(pm, Symbol(kind), nw=n_2)
-                constraint_storage_state(pm, i, n_1, n_2, kind) # Eq. (9), (11)
+        if kind == "storage" #### if eff = 1 dann auch für storage else Bedingung
+            for i in ids(pm, Symbol(kind), nw=n_1)
+                constraint_storage_state(pm, i, nw=n_1)  # Eq. (8), (10)
             end
-            n_1 = n_2
+
+            for n_2 in network_ids[2:end]
+                for i in ids(pm, Symbol(kind), nw=n_2)
+                    constraint_storage_state(pm, i, n_1, n_2) # Eq. (9), (11)
+                end
+                n_1 = n_2
+            end
+        else
+        if kind == "dsm"
+            p_loss = 0
+        end
+            for i in ids(pm, Symbol(kind), nw=n_1)
+                if kind == "heat_storage"
+                    p_loss = ref(pm, 1, :heat_storage, i)["p_loss"]
+                end
+                constraint_store_state(pm, i, nw=n_1, kind=kind)  # Eq. (8), (10)
+            end
+
+            for n_2 in network_ids[2:end]
+                for i in ids(pm, Symbol(kind), nw=n_2)
+                    if kind == "heat_storage"
+                        p_loss = ref(pm, 1, :heat_storage, i)["p_loss"]
+                    end
+                    constraint_store_state(pm, i, n_1, n_2, kind) # Eq. (9), (11)
+                end
+                n_1 = n_2
+            end
         end
     end
 
