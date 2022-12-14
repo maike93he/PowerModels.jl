@@ -531,7 +531,7 @@ end
 function variable_branch_power_real_radial(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     p = var(pm, nw)[:p] = JuMP.@variable(pm.model,
         [(l,i,j) in ref(pm, nw, :arcs_from)], base_name="$(nw)_p",
-        lower_bound = 0,
+        lower_bound = -1e5,
         upper_bound = 1e5,
         start = comp_start_value(ref(pm, nw, :branch, l), "p_start")
     )
@@ -546,7 +546,7 @@ function variable_branch_power_real_radial(pm::AbstractPowerModel; nw::Int=nw_id
         for arc in ref(pm, nw, :arcs_from)
             l,i,j = arc
             if !isinf(flow_lb[l])
-                JuMP.set_lower_bound(p[arc], 0)
+                JuMP.set_lower_bound(p[arc], flow_lb[l])
             end
             if !isinf(flow_ub[l])
                 JuMP.set_upper_bound(p[arc], flow_ub[l])
