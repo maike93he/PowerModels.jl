@@ -656,6 +656,7 @@ function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
     phps = Dict(n => var(pm, n, :phps) for n in nws)
     pgens = Dict(n => var(pm, n, :pgens) for n in nws)
     pds = Dict(n => var(pm, n, :pds) for n in nws)
+    pcps = Dict(n => var(pm, n, :pcps) for n in nws)
     s_base = ref(pm, 1, :baseMVA)
 
     return JuMP.@objective(pm.model, Min,
@@ -664,6 +665,7 @@ function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
         + s_base * sum(sum(pgens[n]) for n in nws) # minimize dispatchable curtailment
         + s_base * sum(sum(phps[n]) for n in nws) # minimize heatpump slack variables
         + s_base * sum(sum(pds[n]) for n in nws) # minimize load shedding
+        + s_base * sum(sum(pcps[n]) for n in nws) # minimize cp load shedding
     )
 end
 

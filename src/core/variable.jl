@@ -1735,6 +1735,7 @@ function variable_slack_grid_restrictions(pm::AbstractBFModelEdisgo; kwargs...)
         variable_hp_slack(pm; kwargs...)
         variable_load_slack(pm; kwargs...)
         variable_gen_slack(pm; kwargs...)
+        variable_ev_slack(pm; kwargs...)
     end
 end
 
@@ -1783,6 +1784,22 @@ function variable_gen_slack(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, bo
     end
 
     report && sol_component_value(pm, nw, :gen, :pgens, ids(pm, nw, :gen), pgens)
+end
+
+"EV slack variable"
+function variable_ev_slack(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    pcps = var(pm, nw)[:pcps] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :electromobility)], base_name="$(nw)_pcps",
+        lower_bound = 0.0,
+    )
+
+    if bounded
+        for (i, cp) in ref(pm, nw, :electromobility)
+            JuMP.set_upper_bound(pcps[i], cp["p_min"])
+        end
+    end
+
+    report && sol_component_value(pm, nw, :electromobility, :pcps, ids(pm, nw, :electromobility), pcps)
 end
 
 "slack generator variables"
