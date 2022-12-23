@@ -965,9 +965,9 @@ end
 function constraint_store_state(pm::AbstractBFModelEdisgo, i::Int; nw::Int=nw_id_default, kind::String)
     storage = ref(pm, nw, Symbol(kind), i)
 
-    if kind in("dsm", "heat_storage")
+    if kind == "dsm"
         p_loss = 0
-    elseif kind == "heat_storage"
+    elseif kind in("storage", "heat_storage")
         p_loss =  storage["p_loss"]
     end
 
@@ -985,9 +985,9 @@ end
 function constraint_store_state(pm::AbstractBFModelEdisgo, i::Int, nw_1::Int, nw_2::Int, kind::String)
     storage = ref(pm, nw_2, Symbol(kind), i)
 
-    if kind in("dsm", "heat_storage")
+    if kind == "dsm"
         p_loss = 0
-    elseif kind == "heat_storage"
+    elseif kind in("storage", "heat_storage")
         p_loss =  storage["p_loss"]
     end
 
