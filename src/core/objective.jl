@@ -635,7 +635,6 @@ function objective_min_losses(pm::AbstractBFModelEdisgo)
     nws = nw_ids(pm)
     ccm = Dict(n => var(pm, n, :ccm) for n in nws)
     r = Dict(n => Dict(i => get(branch, "br_r", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)
-    #w = Dict(n => var(pm, n, :w) for n in nws)
     p = Dict(n => var(pm, n, :p) for n in nws)
     l = Dict(n => Dict(i => get(branch, "length", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
     c = Dict(n => Dict(i => get(branch, "cost", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
@@ -644,7 +643,6 @@ function objective_min_losses(pm::AbstractBFModelEdisgo)
     return JuMP.@objective(pm.model, Min,
         sum(sum(ccm[n][b]*r[n][b]*1e3 for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
         + sum(sum(p[n][(b,i,j)]/s_nom[n][b]*l[n][b]*c[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws)  # minimize line loading
-        #+ sum(sum(w[n]) for n in nws) # minimize voltage magnitude overshots
     )
 end
 
@@ -663,7 +661,7 @@ function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
         1e3 / s_base * sum(sum(ccm[n][b]*r[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
         + 1e-2 * s_base * sum(sum(pgc[n]) for n in nws) # minimize non-dispatchable curtailment
         + s_base * sum(sum(pgens[n]) for n in nws) # minimize dispatchable curtailment
-        + s_base * sum(sum(phps[n]) for n in nws) # minimize heatpump slack variables
+        + 1e2 * s_base * sum(sum(phps[n]) for n in nws) # minimize heatpump slack variables
         + s_base * sum(sum(pds[n]) for n in nws) # minimize load shedding
         + s_base * sum(sum(pcps[n]) for n in nws) # minimize cp load shedding
     )
