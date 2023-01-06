@@ -658,8 +658,8 @@ function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
     s_base = ref(pm, 1, :baseMVA)
 
     return JuMP.@objective(pm.model, Min,
-        1e3 / s_base * sum(sum(ccm[n][b]*r[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
-        + 1e-2 * s_base * sum(sum(pgc[n]) for n in nws) # minimize non-dispatchable curtailment
+        1e-1 / s_base * sum(sum(ccm[n][b]*r[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
+        + s_base * sum(sum(pgc[n]) for n in nws) # minimize non-dispatchable curtailment
         + s_base * sum(sum(pgens[n]) for n in nws) # minimize dispatchable curtailment
         + 1e2 * s_base * sum(sum(phps[n]) for n in nws) # minimize heatpump slack variables
         + s_base * sum(sum(pds[n]) for n in nws) # minimize load shedding
