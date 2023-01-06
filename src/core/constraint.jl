@@ -216,15 +216,18 @@ function constraint_store_state_initial(pm::AbstractBFModelEdisgo, n::Int, i::In
     if kind == "storage"
         ps_1 = var(pm, n, :ps, i)
         se = var(pm, n, :se, i)
-        JuMP.@constraint(pm.model, se - energy == - time_elapsed * ps_1)
+        se_end = var(pm, length(nw_ids(pm)), :se, i)
+        JuMP.@constraint(pm.model, se - se_end == - time_elapsed * ps_1)
     elseif kind == "heat_storage"
         phs_1 = var(pm, n, :phs, i)
         hse = var(pm, n, :hse, i)
-        JuMP.@constraint(pm.model, hse - energy * (1 - p_loss) == - time_elapsed * phs_1)
+        hse_end = var(pm, length(nw_ids(pm)), :hse, i)
+        JuMP.@constraint(pm.model, hse - hse_end * (1 - p_loss) == - time_elapsed * phs_1)
     elseif kind == "dsm"
         dsme = var(pm, n, :dsme, i)
+        dsme_end = var(pm, length(nw_ids(pm)), :dsme, i)
         pdsm_1 = var(pm, n, :pdsm, i)
-        JuMP.@constraint(pm.model, dsme - energy ==  + time_elapsed * pdsm_1)
+        JuMP.@constraint(pm.model, dsme - dsme_end ==  + time_elapsed * pdsm_1)
     end
 end
 
