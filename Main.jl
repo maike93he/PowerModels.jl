@@ -30,6 +30,8 @@ function optimize_edisgo()
     # Solve SOC model
     println("Starting convex SOC AC-OPF with Gurobi.")
     result_soc, pm = solve_mn_opf_bf_flex(data_edisgo_mn, SOCBFPowerModelEdisgo, gurobi)
+    println(result_soc["solution"]["nw"]["1"]["electromobility"])
+    println(result_soc["solution"]["nw"]["1"]["heatpumps"])
     # Find violating constraint if model is infeasible
     if result_soc["termination_status"] == MOI.INFEASIBLE
       JuMP.compute_conflict!(pm.model)
