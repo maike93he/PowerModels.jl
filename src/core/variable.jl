@@ -1793,12 +1793,6 @@ function variable_ev_slack(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, bou
         lower_bound = 0.0,
     )
 
-    if bounded
-        for (i, cp) in ref(pm, nw, :electromobility)
-            JuMP.set_upper_bound(pcps[i], cp["p_min"])
-        end
-    end
-
     report && sol_component_value(pm, nw, :electromobility, :pcps, ids(pm, nw, :electromobility), pcps)
 end
 
