@@ -1732,7 +1732,7 @@ end
 "slack variables for grid restrictions"
 function variable_slack_grid_restrictions(pm::AbstractBFModelEdisgo; kwargs...)
     if ref(pm, 1, :opt_version) in(2,4)
-        variable_hp_slack(pm; kwargs...)
+        #variable_hp_slack(pm; kwargs...)
         variable_load_slack(pm; kwargs...)
         variable_gen_slack(pm; kwargs...)
         variable_ev_slack(pm; kwargs...)
