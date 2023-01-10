@@ -212,7 +212,7 @@ end
 
 "power balance for radial branch flow model" 
 function constraint_power_balance_bf(pm::AbstractBFModelEdisgo, i::Int; nw::Int=nw_id_default)
-    bus = ref(pm, nw, :bus, i)
+    #bus = ref(pm, nw, :bus, i)
     bus_lines_to = ref(pm, nw, :bus_lines_to, i)
     bus_arcs_to = ref(pm, nw, :bus_arcs_to, i)
     bus_arcs_from = ref(pm, nw, :bus_arcs_from, i)
@@ -243,10 +243,11 @@ function constraint_power_balance_bf(pm::AbstractBFModelEdisgo, i::Int; nw::Int=
     bus_dsm_pf = Dict(k => tan(acos(ref(pm, nw, :dsm, k, "pf")))*ref(pm, nw, :dsm, k, "sign") for k in bus_dsm)
     bus_hps_pf = Dict(k => tan(acos(ref(pm, nw, :heatpumps, k, "pf")))*ref(pm, nw, :heatpumps, k, "sign") for k in bus_hps) 
     bus_cps_pf = Dict(k => tan(acos(ref(pm, nw, :electromobility, k, "pf")))*ref(pm, nw, :electromobility, k, "sign") for k in bus_cps)
-    bus_gens_pf = Dict(k => tan(acos(ref(pm, nw, :gen_nd, k, "pf")))*ref(pm, nw, :gen_nd, k, "sign") for k in bus_gens_nd)
+    bus_gen_nd_pf = Dict(k => tan(acos(ref(pm, nw, :gen_nd, k, "pf")))*ref(pm, nw, :gen_nd, k, "sign") for k in bus_gens_nd)
+    bus_gen_d_pf = Dict(k => tan(acos(ref(pm, nw, :gen, k, "pf")))*ref(pm, nw, :gen, k, "sign") for k in bus_gens)
     bus_loads_pf = Dict(k => tan(acos(ref(pm, nw, :load, k, "pf")))*ref(pm, nw, :load, k, "sign") for k in bus_loads)
     
-    constraint_power_balance(pm, nw, i, bus_gens, bus_gens_nd, bus_gens_slack, bus_loads, bus_arcs_to, bus_arcs_from, bus_lines_to, bus_storage, bus_pg, bus_qg, bus_pg_nd, bus_qg_nd, bus_pd, bus_qd, branch_r, branch_x, bus_dsm, bus_hps, bus_cps, bus_storage_pf, bus_dsm_pf, bus_hps_pf, bus_cps_pf, bus_gens_pf, bus_loads_pf)
+    constraint_power_balance(pm, nw, i, bus_gens, bus_gens_nd, bus_gens_slack, bus_loads, bus_arcs_to, bus_arcs_from, bus_lines_to, bus_storage, bus_pg, bus_qg, bus_pg_nd, bus_qg_nd, bus_pd, bus_qd, branch_r, branch_x, bus_dsm, bus_hps, bus_cps, bus_storage_pf, bus_dsm_pf, bus_hps_pf, bus_cps_pf, bus_gen_nd_pf, bus_gen_d_pf, bus_loads_pf)
 end
 
 "nodal power balance with constant power factor load and shunt shedding"
