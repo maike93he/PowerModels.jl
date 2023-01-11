@@ -649,21 +649,23 @@ end
 function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
     nws = nw_ids(pm)
     ccm = Dict(n => var(pm, n, :ccm) for n in nws)
-    r = Dict(n => Dict(i => get(branch, "br_r", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)
+    r = Dict(n => Dict(i => get(branch, "r", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)
     pgc = Dict(n => var(pm, n, :pgc) for n in nws)
     #phps = Dict(n => var(pm, n, :phps) for n in nws)
     pgens = Dict(n => var(pm, n, :pgens) for n in nws)
     pds = Dict(n => var(pm, n, :pds) for n in nws)
     pcps = Dict(n => var(pm, n, :pcps) for n in nws)
     s_base = ref(pm, 1, :baseMVA)
+    l = Dict(n => Dict(i => get(branch, "length", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
+    c = Dict(n => Dict(i => get(branch, "cost", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
 
     return JuMP.@objective(pm.model, Min,
-        1e3 * s_base * sum(sum(ccm[n][b]*r[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
-        + s_base * sum(sum(pgc[n]) for n in nws) # minimize non-dispatchable curtailment
-        + s_base * sum(sum(pgens[n]) for n in nws) # minimize dispatchable curtailment
+        1e3 * s_base * sum(sum(ccm[n][b]*r[n][b]*l[n][b]*c[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
+        + 1e6 * s_base * sum(sum(pgc[n]) for n in nws) # minimize non-dispatchable curtailment
+        + 1e6 * s_base * sum(sum(pgens[n]) for n in nws) # minimize dispatchable curtailment
         #+ s_base * sum(sum(phps[n]) for n in nws) # minimize heatpump slack variables
-        + s_base * sum(sum(pds[n]) for n in nws) # minimize load shedding
-        + s_base * sum(sum(pcps[n]) for n in nws) # minimize cp load shedding
+        + 1e6 * s_base * sum(sum(pds[n]) for n in nws) # minimize load shedding
+        + 1e6 * s_base * sum(sum(pcps[n]) for n in nws) # minimize cp load shedding
         # evtl. noch heat storage losses mit aufnehmen?
     )
 end
