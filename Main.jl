@@ -48,7 +48,7 @@ function optimize_edisgo()
       soc_tight, soc_dict = check_SOC_equality(result_soc, data_edisgo)
       # Save SOC violations if SOC is not tight
       if !soc_tight
-        open(joinpath(results_path, ding0_grid*"_SOC_tightness.json"), "w") do f
+        open(joinpath(results_path, ding0_grid*"_"*join(data_edisgo["flexibilities"])*".json"), "w") do f
             write(f, JSON.json(soc_dict))
         end
       end
