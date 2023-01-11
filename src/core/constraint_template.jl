@@ -845,8 +845,9 @@ function constraint_voltage_magnitude_difference_radial(pm::AbstractBFModelEdisg
     r = branch["br_r"]
     x = branch["br_x"]
     tm = branch["tap"]
-
-    constraint_voltage_magnitude_difference(pm, nw, i, f_bus, t_bus, f_idx, t_idx, r, x, tm)
+    if !(branch["storage"])
+        constraint_voltage_magnitude_difference(pm, nw, i, f_bus, t_bus, f_idx, t_idx, r, x, tm)
+    end
 end
 
 ### Switch Constraints ###

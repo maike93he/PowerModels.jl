@@ -20,7 +20,7 @@ function variable_buspair_current_magnitude_sqr(pm::AbstractBFModel; nw::Int=nw_
             ub = ((rate_a*b["tap"])/(bus[b["f_bus"]]["vmin"]))^2
 
             JuMP.set_lower_bound(ccm[i], 0.0)
-            if !isinf(ub)
+            if !isinf(ub)&!(b["storage"])
                 JuMP.set_upper_bound(ccm[i], ub)
             end
         end
@@ -101,8 +101,9 @@ function constraint_model_current(pm::AbstractBFQPModel, n::Int)
         t_bus = branch["t_bus"]
         f_idx = (i, f_bus, t_bus)
         tm = branch["tap"]
-
-        JuMP.@constraint(pm.model, p[f_idx]^2 + q[f_idx]^2 <= (w[f_bus]/tm^2)*ccm[i])
+        if !(branch["storage"])
+            JuMP.@constraint(pm.model, p[f_idx]^2 + q[f_idx]^2 <= (w[f_bus]/tm^2)*ccm[i])
+        end
     end
 end
 
@@ -140,8 +141,9 @@ function constraint_model_current(pm::AbstractBFConicModel, n::Int)
         t_bus = branch["t_bus"]
         f_idx = (i, f_bus, t_bus)
         tm = branch["tap"]
-
+        
         JuMP.@constraint(pm.model, [w[f_bus]/tm^2, ccm[i]/2, p[f_idx], q[f_idx]] in JuMP.RotatedSecondOrderCone())
+        
     end
 end
 
