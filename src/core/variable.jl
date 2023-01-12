@@ -122,7 +122,7 @@ function variable_bus_voltage_magnitude_sqr(pm::AbstractPowerModel; nw::Int=nw_i
     )
 
     if bounded
-        if ref(pm, 1, :opt_version) in(1, 3)
+        if ref(pm, 1, :opf_version) in(1, 3)
             for (i, bus) in ref(pm, nw, :bus)
                 JuMP.set_lower_bound(w[i], bus["vmin"]^2)
                 JuMP.set_upper_bound(w[i], bus["vmax"]^2)
@@ -536,7 +536,7 @@ function variable_branch_power_real_radial(pm::AbstractPowerModel; nw::Int=nw_id
         start = comp_start_value(ref(pm, nw, :branch, l), "p_start")
     )
 
-    if ref(pm, 1, :opt_version) in(1,3)
+    if ref(pm, 1, :opf_version) in(1,3)
         bounded = false
     end
 
@@ -577,7 +577,7 @@ function variable_branch_power_imaginary_radial(pm::AbstractPowerModel; nw::Int=
         start = comp_start_value(ref(pm, nw, :branch, l), "q_start")
     )
 
-    if ref(pm, 1, :opt_version) in(1,3)
+    if ref(pm, 1, :opf_version) in(1,3)
         bounded = false
     end
 
@@ -1731,7 +1731,7 @@ end
 
 "slack variables for grid restrictions"
 function variable_slack_grid_restrictions(pm::AbstractBFModelEdisgo; kwargs...)
-    if ref(pm, 1, :opt_version) in(2,4)
+    if ref(pm, 1, :opf_version) in(2,4)
         #variable_hp_slack(pm; kwargs...)
         variable_load_slack(pm; kwargs...)
         variable_gen_slack(pm; kwargs...)
@@ -1819,7 +1819,7 @@ end
 
 "slack variables for HV requirement constraints"
 function variable_slack_HV_requirements(pm::AbstractPowerModel; kwargs...)
-    if ref(pm, 1, :opt_version) in(1,2)
+    if ref(pm, 1, :opf_version) in(1,2)
         variable_slack_HV_requirements_real(pm; kwargs...)  
         #variable_slack_HV_requirements_imaginary(pm; kwargs...)  
     end
