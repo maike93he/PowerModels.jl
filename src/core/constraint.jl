@@ -225,9 +225,9 @@ function constraint_store_state_initial(pm::AbstractBFModelEdisgo, n::Int, i::In
         JuMP.@constraint(pm.model, hse - hse_end * (1 - p_loss) == - time_elapsed * phs_1)
     elseif kind == "dsm"
         dsme = var(pm, n, :dsme, i)
-        dsme_end = var(pm, length(nw_ids(pm)), :dsme, i)
+        #dsme_end = var(pm, length(nw_ids(pm)), :dsme, i)
         pdsm_1 = var(pm, n, :pdsm, i)
-        JuMP.@constraint(pm.model, dsme - dsme_end ==  + time_elapsed * pdsm_1)
+        JuMP.@constraint(pm.model, dsme - energy ==  + time_elapsed * pdsm_1)
     end
 end
 
@@ -262,6 +262,9 @@ function constraint_store_state(pm::AbstractBFModelEdisgo, n_1::Int, n_2::Int, i
         dsme_1 = var(pm, n_1, :dsme, i)
 
         JuMP.@constraint(pm.model, dsme_2 - dsme_1 == time_elapsed*pdsm_2)
+        if n_2 == length(nw_ids(pm))
+            JuMP.@constraint(pm.model, dsme_2 == 0)
+        end
     end
 end
 
@@ -332,6 +335,11 @@ function constraint_cp_state(pm::AbstractBFModelEdisgo, n_1::Int, n_2::Int, i::I
     cpe_1 = var(pm, n_1, :cpe, i)
 
     JuMP.@constraint(pm.model, cpe_2 - cpe_1 == time_elapsed*pcp_2)
+
+    if n_2 == length(collect(nw_ids(pm)))
+        cp = ref(pm, 1, :electromobility, i)
+        JuMP.@constraint(pm.model, cpe_2 == 0.5*(cp["e_min"]+cp["e_max"]))
+    end
 end
 
 """ Creates constraints for heat pump operation"""
