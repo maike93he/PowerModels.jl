@@ -337,7 +337,7 @@ function constraint_cp_state(pm::AbstractBFModelEdisgo, n_1::Int, n_2::Int, i::I
     JuMP.@constraint(pm.model, cpe_2 - cpe_1 == time_elapsed*pcp_2)
 
     if n_2 == length(collect(nw_ids(pm)))
-        cp = ref(pm, 1, :electromobility, i)
+        cp = ref(pm, length(collect(nw_ids(pm))), :electromobility, i)
         JuMP.@constraint(pm.model, cpe_2 == 0.5*(cp["e_min"]+cp["e_max"]))
     end
 end
