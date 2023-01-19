@@ -658,16 +658,23 @@ function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
     s_base = ref(pm, 1, :baseMVA)
     l = Dict(n => Dict(i => get(branch, "length", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
     c = Dict(n => Dict(i => get(branch, "cost_factor", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
-
-
+    parameters = [c[1][i]*r[1][i] for i in keys(c[1])]
+    parameters = parameters[parameters .>0]
+    factor = 1
+    while true
+        if minimum(factor*parameters) > 1e-1
+            break
+        end
+        factor = 10*factor
+    end
+    println(factor)
     return JuMP.@objective(pm.model, Min,
-        1e6 * s_base * sum(sum(ccm[n][b]*r[n][b]*c[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
+        factor * s_base * sum(sum(ccm[n][b]*r[n][b]*c[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
         + 1e6 * s_base * sum(sum(pgc[n]) for n in nws) # minimize non-dispatchable curtailment
         + 1e6 * s_base * sum(sum(pgens[n]) for n in nws) # minimize dispatchable curtailment
         #+ s_base * sum(sum(phps[n]) for n in nws) # minimize heatpump slack variables
         + 1e6 * s_base * sum(sum(pds[n]) for n in nws) # minimize load shedding
         + 1e6 * s_base * sum(sum(pcps[n]) for n in nws) # minimize cp load shedding
-        # evtl. noch heat storage losses mit aufnehmen?
     )
 end
 
