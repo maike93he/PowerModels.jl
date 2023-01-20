@@ -662,10 +662,11 @@ function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
     parameters = parameters[parameters .>0]
     factor = 1
     while true
-        if minimum(factor*parameters) > 1e-1
+        if minimum(factor*parameters) > 1
             break
+        else
+            factor = 10*factor
         end
-        factor = 10*factor
     end
     println(factor)
     return JuMP.@objective(pm.model, Min,
