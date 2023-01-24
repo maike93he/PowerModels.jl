@@ -674,7 +674,7 @@ function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
         + 1e6 * s_base * sum(sum(pgc[n]) for n in nws) # minimize non-dispatchable curtailment
         + 1e6 * s_base * sum(sum(pgens[n]) for n in nws) # minimize dispatchable curtailment
         #+ s_base * sum(sum(phps[n]) for n in nws) # minimize heatpump slack variables
-        + 1e6 * s_base * sum(sum(pds[n]) for n in nws) # minimize load shedding
+        # + 1e6 * s_base * sum(sum(pds[n]) for n in nws) # minimize load shedding
         + 1e6 * s_base * sum(sum(pcps[n]) for n in nws) # minimize cp load shedding
     )
 end
