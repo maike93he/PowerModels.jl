@@ -268,7 +268,7 @@ function constraint_power_balance(pm::AbstractBFModelEdisgo, n::Int, i, bus_gens
 
     if ref(pm, 1, :opf_version) in(2, 4)
         pgens  = get(var(pm, n),  :pgens, Dict()); _check_var_keys(pgens, bus_gens, "active power slack", "curtailment")
-        pds  = get(var(pm, n),  :pds, Dict()); _check_var_keys(pds, bus_loads, "active power slack", "load")
+        #pds  = get(var(pm, n),  :pds, Dict()); _check_var_keys(pds, bus_loads, "active power slack", "load")
         pcps  = get(var(pm, n),  :pcps, Dict()); _check_var_keys(pcps, bus_cps, "active power slack", "charging point")
 
 
@@ -282,7 +282,7 @@ function constraint_power_balance(pm::AbstractBFModelEdisgo, n::Int, i, bus_gens
             - sum(pg for pg in values(bus_pg_nd))
             - sum(ps[s] for s in bus_storage)
             + sum(pd for pd in values(bus_pd))
-            - sum(pds[l] for l in bus_loads)
+            #- sum(pds[l] for l in bus_loads)
             + sum(pgens[g] for g in bus_gens)
             + sum(pgc[g] for g in bus_gens_nd)
             + sum(pdsm[dsm] for dsm in bus_dsm)
@@ -299,7 +299,7 @@ function constraint_power_balance(pm::AbstractBFModelEdisgo, n::Int, i, bus_gens
             - sum(qg for qg in values(bus_qg))
             - sum(qg for qg in values(bus_qg_nd))
             + sum(qd for qd in values(bus_qd))
-            - sum(pds[l] * bus_loads_pf[l] for l in bus_loads)
+            #- sum(pds[l] * bus_loads_pf[l] for l in bus_loads)
             + sum(pgc[g] * bus_gen_nd_pf[g] for g in bus_gens_nd)
             + sum(pgens[g] * bus_gen_d_pf[g] for g in bus_gens)
             + sum(pdsm[dsm] * bus_dsm_pf[dsm] for dsm in bus_dsm)
