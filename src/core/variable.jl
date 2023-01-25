@@ -1804,8 +1804,7 @@ end
 
 function variable_slack_gen_real(pm::AbstractBFModelEdisgo; nw::Int=nw_id_default, report::Bool=true)
     pgs = var(pm, nw)[:pgs] = JuMP.@variable(pm.model,
-        [i in ids(pm, nw, :gen_slack)], base_name="$(nw)_pgs",
-        lower_bound = 0.0
+        [i in ids(pm, nw, :gen_slack)], base_name="$(nw)_pgs"
     )
     report && sol_component_value(pm, nw, :gen_slack, :pgs, ids(pm, nw, :gen_slack), pgs)
 end
