@@ -669,7 +669,7 @@ function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
         end
     end
     println(factor)
-    factor_slacks = maximum(factor*parameters) * 10
+    factor_slacks = exp10(floor(log10(maximum(factor*parameters))) + 1)
     println(factor_slacks)
     return JuMP.@objective(pm.model, Min,
         factor * s_base * sum(sum(ccm[n][b]*r[n][b]/(c[n][b]*l[n][b]) for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
