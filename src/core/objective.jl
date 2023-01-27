@@ -658,7 +658,7 @@ function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
     s_base = ref(pm, 1, :baseMVA)
     l = Dict(n => Dict(i => get(branch, "length", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
     c = Dict(n => Dict(i => get(branch, "cost", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
-    parameters = [1/(c[1][i]*r[1][i]) for i in keys(c[1])]
+    parameters = [r[1][i]/(c[1][i]*l[1][i]) for i in keys(c[1])]
     parameters = parameters[parameters .>0]
     factor = 1
     while true
