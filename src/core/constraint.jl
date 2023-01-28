@@ -316,7 +316,8 @@ function constraint_cp_state_initial(pm::AbstractBFModelEdisgo, n::Int, i::Int)
 
     cp = ref(pm, n, :electromobility, i)
     cpe = var(pm, n, :cpe, i)
-    JuMP.@constraint(pm.model, cpe == 0.5*(cp["e_min"]+cp["e_max"]))
+    pcp_1 = var(pm, n, :pcp, i)
+    JuMP.@constraint(pm.model, cpe == 0.5*(cp["e_min"]+cp["e_max"]) + time_elapsed * pcp_1)
     
 end
 
