@@ -649,7 +649,7 @@ end
 function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
     nws = nw_ids(pm)
     ccm = Dict(n => var(pm, n, :ccm) for n in nws)
-    r = Dict(n => Dict(i => get(branch, "r", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)
+    r = Dict(n => Dict(i => get(branch, "r_pu", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)
     pgc = Dict(n => var(pm, n, :pgc) for n in nws)
     #phps = Dict(n => var(pm, n, :phps) for n in nws)
     pgens = Dict(n => var(pm, n, :pgens) for n in nws)
@@ -657,25 +657,27 @@ function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
     pcps = Dict(n => var(pm, n, :pcps) for n in nws)
     s_base = ref(pm, 1, :baseMVA)
     l = Dict(n => Dict(i => get(branch, "length", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
-    c = Dict(n => Dict(i => get(branch, "cost_factor", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
-    parameters = [c[1][i]*r[1][i] for i in keys(c[1])]
+    c = Dict(n => Dict(i => get(branch, "cost", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
+    parameters = [r[1][i]/(c[1][i]*l[1][i]) for i in keys(c[1])]
     parameters = parameters[parameters .>0]
     factor = 1
     while true
-        if minimum(factor*parameters) > 1
+        if minimum(factor*parameters) > 1e-4
             break
         else
             factor = 10*factor
         end
     end
     println(factor)
+    factor_slacks = exp10(floor(log10(maximum(factor*parameters))) + 1)
+    println(factor_slacks)
     return JuMP.@objective(pm.model, Min,
-        factor * s_base * sum(sum(ccm[n][b]*r[n][b]*c[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
-        + 1e6 * s_base * sum(sum(pgc[n]) for n in nws) # minimize non-dispatchable curtailment
-        + 1e6 * s_base * sum(sum(pgens[n]) for n in nws) # minimize dispatchable curtailment
+        factor * s_base * sum(sum(ccm[n][b]*r[n][b]/(c[n][b]*l[n][b]) for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
+        + factor_slacks * s_base * sum(sum(pgc[n]) for n in nws) # minimize non-dispatchable curtailment
+        + factor_slacks * s_base * sum(sum(pgens[n]) for n in nws) # minimize dispatchable curtailment
         #+ s_base * sum(sum(phps[n]) for n in nws) # minimize heatpump slack variables
-        + 1e6 * s_base * sum(sum(pds[n]) for n in nws) # minimize load shedding
-        + 1e6 * s_base * sum(sum(pcps[n]) for n in nws) # minimize cp load shedding
+        + factor_slacks * s_base * sum(sum(pds[n]) for n in nws) # minimize load shedding
+        + factor_slacks * s_base * sum(sum(pcps[n]) for n in nws) # minimize cp load shedding
     )
 end
 
