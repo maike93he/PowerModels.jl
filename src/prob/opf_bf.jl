@@ -118,7 +118,6 @@ function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
             else
                 variable_branch_current(pm, nw=n)  # Eq. ()
                 variable_gen_power_curt(pm, nw=n)  #  Eq. (20)
-                variable_slack_grid_restrictions(pm, nw=n)
             end
             variable_bus_voltage(pm, nw=n)  # Eq. (29)
             variable_battery_storage_power(pm, nw=n)  # Eq. (21), (22)
@@ -127,6 +126,7 @@ function build_mn_opf_bf_flex(pm::AbstractBFModelEdisgo)
             variable_heat_pump_power(pm, nw=n)  # Eq. (25)
             variable_dsm_storage_power(pm, nw=n)  # Eq. (26), (27)
             variable_slack_gen(pm, nw=n)  # Eq. (28)
+            variable_slack_grid_restrictions(pm, nw=n)
             variable_slack_HV_requirements(pm, nw=n)
         else
             throw(ArgumentError("OPF version $(ref(pm, 1, :opf_version)) is not implemented! Choose between version 1 to 4."))

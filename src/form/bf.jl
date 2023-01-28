@@ -254,7 +254,7 @@ function constraint_power_balance(pm::AbstractBFModelEdisgo, n::Int, i, bus_gens
     qf   = get(var(pm, n),  :q, Dict()); _check_var_keys(qf, bus_arcs_from, "reactive power", "branch")
     ps   = get(var(pm, n),  :ps, Dict()); _check_var_keys(ps, bus_storage, "active power", "storage") 
     #qs   = get(var(pm, n),  :qs, Dict()); _check_var_keys(qs, bus_storage, "reactive power", "storage")
-    pgc  = get(var(pm, n),  :pgc, Dict()); _check_var_keys(pgc, bus_gens_nd, "active power", "curtailment")
+    
     #qgc  = get(var(pm, n),  :qgc, Dict()); _check_var_keys(qgc, bus_gens_nd, "reactive power", "curtailment")
     pgs  = get(var(pm, n),  :pgs, Dict()); _check_var_keys(pgs, bus_gens_slack, "active power", "slack")
     qgs  = get(var(pm, n),  :qgs, Dict()); _check_var_keys(qgs, bus_gens_slack, "reactive power", "slack")
@@ -270,7 +270,7 @@ function constraint_power_balance(pm::AbstractBFModelEdisgo, n::Int, i, bus_gens
         pgens  = get(var(pm, n),  :pgens, Dict()); _check_var_keys(pgens, bus_gens, "active power slack", "curtailment")
         pds  = get(var(pm, n),  :pds, Dict()); _check_var_keys(pds, bus_loads, "active power slack", "load")
         pcps  = get(var(pm, n),  :pcps, Dict()); _check_var_keys(pcps, bus_cps, "active power slack", "charging point")
-
+        pgc  = get(var(pm, n),  :pgc, Dict()); _check_var_keys(pgc, bus_gens_nd, "active power", "curtailment")
 
         cstr_p = JuMP.@constraint(pm.model,
             sum(pt[a] for a in bus_arcs_to)
