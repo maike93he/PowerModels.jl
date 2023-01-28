@@ -658,21 +658,25 @@ function objective_min_losses_slacks(pm::AbstractBFModelEdisgo)
     s_base = ref(pm, 1, :baseMVA)
     l = Dict(n => Dict(i => get(branch, "length", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
     c = Dict(n => Dict(i => get(branch, "cost", 1.0) for (i,branch) in ref(pm, n, :branch)) for n in nws)
-    parameters = [r[1][i]/(c[1][i]*l[1][i]) for i in keys(c[1])]
+    p = Dict(n => var(pm, n, :p) for n in nws)
+    s_nom = Dict(n => Dict(i => get(branch, "rate_a", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)# p_max?
+    parameters = [r[1][i] for i in keys(c[1])]
     parameters = parameters[parameters .>0]
     factor = 1
     while true
-        if minimum(factor*parameters) > 1e-4
+        if minimum(factor*parameters) > 1e-3
             break
         else
             factor = 10*factor
         end
     end
     println(factor)
-    factor_slacks = exp10(floor(log10(maximum(factor*parameters))) + 1)
+    factor_slacks = exp10(floor(log10(maximum(factor*parameters))) + 5)
+    factor_ll = factor_slacks * 1e-3
     println(factor_slacks)
     return JuMP.@objective(pm.model, Min,
-        factor * s_base * sum(sum(ccm[n][b]*r[n][b]/(c[n][b]*l[n][b]) for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
+        factor * s_base * sum(sum(ccm[n][b]*r[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
+        + factor_ll * sum(sum(p[n][(b,i,j)]/s_nom[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws)  # minimize line loading
         + factor_slacks * s_base * sum(sum(pgc[n]) for n in nws) # minimize non-dispatchable curtailment
         + factor_slacks * s_base * sum(sum(pgens[n]) for n in nws) # minimize dispatchable curtailment
         #+ s_base * sum(sum(phps[n]) for n in nws) # minimize heatpump slack variables
