@@ -644,13 +644,13 @@ function objective_min_losses(pm::AbstractBFModelEdisgo)
     # ref(pm, n, :bus)[bus[n][b]]["vmin"]
     parameters = [1000 * r[1][i] for i in keys(c[1])]
     parameters = parameters[parameters .>0]
-    print(minimum(parameters))
-    print(maximum(parameters))
+    println(minimum(parameters))
+    println(maximum(parameters))
 
     return JuMP.@objective(pm.model, Min,
         #100 * sum(sum((ccm[n][b] / s_nom[n][b]^2 * 0.81 -0.9)^2 * r[n][b]  for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses * c[n][b] * l[n][b]
         1000 * sum(sum(ccm[n][b] * r[n][b]  for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
-        + sum((sum(p[n][(b,i,j)]/s_nom[n][b] - 0.9)^2 for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws)  # minimize line loading * c[n][b]*l[n][b]
+        + sum(sum(p[n][(b,i,j)]/s_nom[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws)  # minimize line loading * c[n][b]*l[n][b]
     )
 end
 
