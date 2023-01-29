@@ -53,11 +53,13 @@ function optimize_edisgo()
         end
       end
       update_data!(data_edisgo_mn, result_soc["solution"])
+      data_edisgo_mn["solve_time"] = result_soc["solve_time"]
       if soc_tight & warm_start
         println("Starting warm-start non-convex AC-OPF with IPOPT.")
         set_ac_bf_start_values!(data_edisgo_mn["nw"]["1"])
         result_nc_ws, pm = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt)
         update_data!(data_edisgo_mn, result_nc_ws["solution"])
+        data_edisgo_mn["solve_time"] = result_nc_ws["solve_time"]
       end
     else
       println("Termination status: "*result_soc["termination_status"])
@@ -67,6 +69,7 @@ function optimize_edisgo()
     println("Starting cold-start non-convex AC-OPF with IPOPT.")
     result, pm = solve_mn_opf_bf_flex(data_edisgo_mn, NCBFPowerModelEdisgo, ipopt)
     update_data!(data_edisgo_mn, result["solution"])
+    data_edisgo_mn["solve_time"] = result["solve_time"]
   end
 
   # Update network data with optimization results and print to stdout
