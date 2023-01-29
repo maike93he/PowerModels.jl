@@ -642,14 +642,21 @@ function objective_min_losses(pm::AbstractBFModelEdisgo)
     bus = Dict(n => Dict(i => get(branch, "f_bus", 1.0) for (i,branch) in ref(pm, n, :branch))  for n in nws)
     #v_min = Dict(n => Dict(i => get(bus, "vmin", 1.0) for (i,bus) in ref(pm, n, :branch))  for n in nws)
     # ref(pm, n, :bus)[bus[n][b]]["vmin"]
-    parameters = [1000 * r[1][i] for i in keys(c[1])]
+    parameters = [r[1][i] for i in keys(c[1])]
     parameters = parameters[parameters .>0]
-    println(minimum(parameters))
-    println(maximum(parameters))
+    factor = 1
+    while true
+        if minimum(factor*parameters) > 1e2
+            break
+        else
+            factor = 10*factor
+        end
+    end
+    println(factor)
 
     return JuMP.@objective(pm.model, Min,
         #100 * sum(sum((ccm[n][b] / s_nom[n][b]^2 * 0.81 -0.9)^2 * r[n][b]  for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses * c[n][b] * l[n][b]
-        1000 * sum(sum(ccm[n][b] * r[n][b]  for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
+        factor * sum(sum(ccm[n][b] * r[n][b]  for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws) # minimize line losses
         + sum(sum(p[n][(b,i,j)]/s_nom[n][b] for (b,i,j) in ref(pm, n, :arcs_from)) for n in nws)  # minimize line loading * c[n][b]*l[n][b]
     )
 end
